@@ -14,7 +14,6 @@ export default function Home() {
       <Grid
         container
         direction={"column"}
-        spacing={2}
         size={12}
         gridTemplateRows={"auto"}
         sx={
