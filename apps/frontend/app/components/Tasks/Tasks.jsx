@@ -1,30 +1,44 @@
 "use client";
 
 import { Grid } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AddTask from "./AddTask";
 import Task from "./Task";
 
-const initialTasks = [
-  {
-    id: Date.now() + 1,
-    text: "2 task",
-    isDone: true,
-    date: new Date().toLocaleString(),
-  },
-  {
-    id: Date.now(),
-    text: "1 task",
-    isDone: false,
-    date: new Date().toLocaleString(),
-  },
-];
+// const initialTasks = [
+//   {
+//     id: Date.now() + 1,
+//     text: "2 task",
+//     isDone: true,
+//     date: new Date().toLocaleString(),
+//   },
+//   {
+//     id: Date.now(),
+//     text: "1 task",
+//     isDone: false,
+//     date: new Date().toLocaleString(),
+//   },
+// ];
 
 export default function Tasks() {
-  const [tasks, setTasks] = useState(initialTasks);
+  // const [tasks, setTasks] = useState(initialTasks);
+  const [tasks, setTasks] = useState([]);
   const [sortOrder, setSortOrder] = useState("asc");
   const [bin, setBin] = useState([]);
   const [isBin, setIsBin] = useState(false);
+
+  useEffect(() => {
+    fetch("http://localhost:3001/api/tasks")
+      .then((res) => {
+        // console.log("res: ", res, res.json());
+        return res.json();
+      })
+      .then((data) => {
+        // console.log(data);
+        setTasks(data);
+      })
+      .catch((err) => console.error("API error: ", err));
+  }, []);
 
   const sortTasks = (tasks) => {
     const sortedTasks = [...tasks].sort((a, b) => {
