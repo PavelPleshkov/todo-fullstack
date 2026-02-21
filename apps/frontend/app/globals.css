@@ -31,6 +31,14 @@ body {
   }
 }
 
+.content {
+  .failed-adding::placeholder {
+    opacity: 1 !important;
+    color: #ff3e3e !important;
+    text-shadow: 0 0 1px rgba(0, 0, 0, 0.5) !important;
+  }
+}
+
 .content-dark {
   background-color: #4e504b;
   color: var(--foreground);

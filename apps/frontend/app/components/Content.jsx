@@ -9,7 +9,7 @@ export default function Content() {
   const className = "content-" + theme;
 
   return (
-    <div className={className}>
+    <div className={"content " + className}>
       <Stack spacing={2}>
         <Stopwatch />
 

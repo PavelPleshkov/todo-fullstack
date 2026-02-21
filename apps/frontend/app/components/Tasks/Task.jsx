@@ -21,25 +21,53 @@ export default function Task({
 
   const theme = useContext(ThemeContext);
 
-  function editTask() {
+  const editTask = async (id) => {
     if (isEditable) {
-      setTasks(
-        tasks.map((t) => {
-          if (t.id === task.id) {
-            return {
-              ...t,
-              id: Date.now(),
-              text: selfText,
-              date: new Date().toLocaleString(),
-            };
-          } else {
-            return t;
-          }
-        }),
-      );
+      try {
+        const response = await fetch(`http://localhost:3001/api/tasks/${id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ text: selfText }),
+        });
+
+        if (response.ok) {
+          const updatedTask = await response.json();
+
+          setTasks(tasks.map((t) => (t.id === id ? updatedTask : t)));
+        }
+      } catch (error) {
+        console.log("Edit error: ", error);
+      }
     }
     setIsEditable((prev) => !prev);
-  }
+  };
+
+  const deleteTask = async (id) => {
+    if (!isBin) {
+      try {
+        const response = await fetch(`http://localhost:3001/api/bin/${id}`, {
+          method: "POST",
+        });
+
+        if (response.ok) {
+          setTasks(tasks.filter((t) => t.id !== id));
+          setBin([task, ...bin]);
+        }
+      } catch (error) {
+        console.log("Delete error: ", error);
+      }
+    } else {
+      const response = await fetch(`http://localhost:3001/api/bin/${id}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        setBin(bin.filter((t) => t.id !== id));
+      }
+    }
+  };
 
   return (
     <li style={{ padding: "5px 10px" }}>
@@ -94,7 +122,7 @@ export default function Task({
               autoFocus={isEditable}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
-                  editTask();
+                  editTask(task.id);
                 }
               }}
               onChange={(e) => {
@@ -120,25 +148,7 @@ export default function Task({
         </Grid>
         <Grid container direction={"row"} size={6} spacing={2}>
           <Grid>
-            <Btn
-              onClick={() => {
-                if (!isBin) {
-                  setTasks(tasks.filter((t) => t.id !== task.id));
-                  setBin([
-                    {
-                      id: task.id,
-                      text: task.text,
-                      isDone: task.isDone,
-                      date: task.date,
-                    },
-                    ...bin,
-                  ]);
-                } else {
-                  setBin(bin.filter((t) => t.id !== task.id));
-                }
-              }}
-              variant="contained"
-            >
+            <Btn onClick={() => deleteTask(task.id)} variant="contained">
               <Delete />
             </Btn>
           </Grid>
@@ -146,9 +156,7 @@ export default function Task({
             <Btn
               disabled={isBin}
               variant="contained"
-              onClick={() => {
-                editTask();
-              }}
+              onClick={() => editTask(task.id)}
             >
               {isEditable ? "Save" : "Edit"}
             </Btn>
