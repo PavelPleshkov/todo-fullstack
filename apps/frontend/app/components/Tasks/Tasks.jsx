@@ -82,7 +82,7 @@ export default function Tasks() {
 
       <Grid size={12}>
         <h1 style={{ padding: "10px 20px" }}>
-          {!isBin ? "Tasks" : bin.length ? "Bin" : "Bin empty"}
+          {!isBin ? "Tasks" : bin.length ? "Bin" : "Bin is empty"}
         </h1>
         <ul>
           {!isBin

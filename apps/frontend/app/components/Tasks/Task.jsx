@@ -148,7 +148,11 @@ export default function Task({
         </Grid>
         <Grid container direction={"row"} size={6} spacing={2}>
           <Grid>
-            <Btn onClick={() => deleteTask(task.id)} variant="contained">
+            <Btn
+              title={isBin ? "Delete" : "Move to bin"}
+              onClick={() => deleteTask(task.id)}
+              variant="contained"
+            >
               <Delete />
             </Btn>
           </Grid>

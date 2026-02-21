@@ -11,6 +11,7 @@ export default function Btn({
       color: "#9c1a1a",
     },
   },
+  title,
   variant,
   children,
 }) {
@@ -18,6 +19,7 @@ export default function Btn({
   const className = "btn-" + theme;
   return (
     <Button
+      title={title}
       className={className}
       disabled={disabled}
       onClick={onClick}
