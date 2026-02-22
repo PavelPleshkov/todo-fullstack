@@ -1,5 +1,5 @@
-import { colors, Grid } from "@mui/material";
-import { useContext, useEffect, useState } from "react";
+import { Grid } from "@mui/material";
+import { useContext, useState } from "react";
 import Btn from "./Btn";
 import { ThemeContext } from "@/app/ThemeContext";
 
