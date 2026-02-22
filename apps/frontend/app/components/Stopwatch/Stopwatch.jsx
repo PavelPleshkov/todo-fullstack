@@ -60,7 +60,7 @@ const StopwatchControl = memo(function StopwatchControl({
   setIsRunning,
   handleResetBtn,
 }) {
-  console.log("🔄 StopwatchControl render");
+  // console.log("🔄 StopwatchControl render");
   return (
     <Grid container padding={"10px"} spacing={2}>
       <RunBtn
@@ -120,7 +120,7 @@ export default function Stopwatch() {
   }, [isRunning, seconds, minutes]);
 
   const handleResetBtn = useCallback(() => {
-    console.log("🔄 StopwatchControl render");
+    // console.log("🔄 StopwatchControl render");
     setHours(0);
     setSeconds(0);
     setMinutes(0);
