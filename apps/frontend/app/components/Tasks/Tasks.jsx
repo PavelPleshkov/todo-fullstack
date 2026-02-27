@@ -47,6 +47,7 @@ export default function Tasks() {
 
   const toggleTask = async (id) => {
     const task = tasks.find((t) => t.id === id);
+    if (!task) return;
 
     try {
       const response = await fetch(`http://localhost:3001/api/tasks/${id}`, {
@@ -57,13 +58,15 @@ export default function Tasks() {
         body: JSON.stringify({ isDone: !task.isDone }),
       });
 
-      if (response.ok) {
-        const updatedTask = await response.json();
+      const data = await response.json();
 
-        setTasks(tasks.map((t) => (t.id === id ? updatedTask : t)));
+      if (response.ok && data.id !== undefined && !data.error) {
+        setTasks((prev) =>
+          prev.map((t) => (t.id === id ? { ...t, ...data, isDone: Boolean(data.isDone) } : t))
+        );
       }
     } catch (error) {
-      console.log("Toggle error: ", error);
+      console.error("Toggle error: ", error);
     }
   };
 
