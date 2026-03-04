@@ -20,7 +20,7 @@ export default function Header({ setTheme }) {
         <h1 style={{ display: "flex", alignItems: "center" }}>
           <Grid container spacing={2} direction={"row"} alignItems={"center"}>
             <Icon sx={{ display: "block" }}>star</Icon>
-            <div>React app</div>
+            <div>React, Next.js, Nest.js, PostgreSQL app</div>
           </Grid>
         </h1>
         <Button

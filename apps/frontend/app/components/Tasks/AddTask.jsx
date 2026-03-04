@@ -43,7 +43,7 @@ export default function AddTask({
         setText("");
       }
     } catch (error) {
-      console.warn("❌ Add task failed:", error);
+      console.error("Add task failed:", error);
     }
   };
 
@@ -55,10 +55,10 @@ export default function AddTask({
       );
 
       if (response.ok) {
-        const movedTasks = await response.json();
+        const { moved, tasks: remainingTasks } = await response.json();
 
-        setTasks(tasks.filter((t) => !t.isDone));
-        setBin([...movedTasks, ...bin]);
+        setTasks(Array.isArray(remainingTasks) ? remainingTasks : []);
+        setBin((prev) => [...(Array.isArray(moved) ? moved : []), ...prev]);
       }
     } catch (error) {
       console.log("Delete completed error: ", error);
