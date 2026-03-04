@@ -43,7 +43,7 @@ export default function AddTask({
         setText("");
       }
     } catch (error) {
-      console.warn("❌ Add task failed:", error);
+      console.error("Add task failed:", error);
     }
   };
 

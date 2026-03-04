@@ -15,7 +15,6 @@ import {
   Put,
   OnModuleInit,
   OnModuleDestroy,
-  // Req,
 } from '@nestjs/common';
 import { Client } from 'pg';
 
@@ -36,54 +35,27 @@ interface Task {
   date: string;
 }
 
-// @Controller('api/tasks')
 @Controller('api')
-// export class AppController {
-// private tasks: Task[] = [
-//   {
-//     id: 2,
-//     text: 'Task 3 from Nest.js',
-//     isDone: false,
-//     date: new Date().toLocaleString(),
-//   },
-//   {
-//     id: 1,
-//     text: 'Task 2 from Nest.js',
-//     isDone: true,
-//     date: new Date().toLocaleString(),
-//   },
-//   {
-//     id: 0,
-//     text: 'Task 1 from Nest.js',
-//     isDone: true,
-//     date: new Date().toLocaleString(),
-//   },
-// ];
-// private bin: Task[] = [];
 export class AppController implements OnModuleInit, OnModuleDestroy {
-  private client: Client; // ← Подключение к БД
+  private client: Client;
 
-  // ИНИЦИАЛИЗАЦИЯ PostgreSQL (вместо private tasks = [])
   async onModuleInit() {
     this.client = new Client({
-      host: 'localhost', // Хост БД (твой MacBook)
-      port: 5432, // Стандартный порт PostgreSQL
-      user: 'pavel', // ТВОЙ суперпользователь
-      password: '', // Пустой пароль (Homebrew)
-      database: 'todo_db', // ТВОЯ база
+      host: 'localhost',
+      port: 5432,
+      user: 'pavel',
+      password: '',
+      database: 'todo_db',
     });
-    await this.client.connect(); // Подключиться к БД
+    await this.client.connect();
     console.log('✅ PostgreSQL подключен!');
   }
 
   async onModuleDestroy() {
-    await this.client.end(); // Закрыть соединение
+    await this.client.end();
   }
 
   @Get('tasks')
-  // getTasks() {
-  //   return this.tasks;
-  // }
   async getTasks(): Promise<Task[]> {
     const res = await this.client.query(
       'SELECT * FROM tasks WHERE deleted=false ORDER BY id ASC',
@@ -98,17 +70,6 @@ export class AppController implements OnModuleInit, OnModuleDestroy {
   }
 
   @Post('tasks')
-  // postTask(@Body() createTaskDto: CreateTaskDto) {
-  //   const newTask = {
-  //     id: Date.now(),
-  //     text: createTaskDto.text,
-  //     isDone: createTaskDto.isDone,
-  //     date: new Date().toLocaleString(),
-  //   };
-  //   // this.tasks.push(task);
-  //   this.tasks = [newTask, ...this.tasks];
-  //   return newTask;
-  // }
   async postTasks(@Body() createTaskDto: CreateTaskDto): Promise<Task> {
     const res = await this.client.query(
       'INSERT INTO tasks (text, isDone) VALUES ($1, $2) RETURNING *',
@@ -125,17 +86,6 @@ export class AppController implements OnModuleInit, OnModuleDestroy {
   }
 
   @Put('tasks/:id')
-  // updateTask(
-  //   @Param('id', ParseIntPipe) id: number,
-  //   @Body() updateTaskDto: UpdateTaskDto,
-  // ) {
-  //   const taskIndex = this.tasks.findIndex((t) => t.id === id);
-
-  //   if (taskIndex === -1) return { error: 'Task not found' };
-  //   this.tasks[taskIndex] = { ...this.tasks[taskIndex], ...updateTaskDto };
-
-  //   return this.tasks[taskIndex];
-  // }
   async updateTask(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateTaskDto: UpdateTaskDto,
@@ -147,6 +97,7 @@ export class AppController implements OnModuleInit, OnModuleDestroy {
       updates.push('text = $' + (values.length + 1));
       values.push(updateTaskDto.text);
     }
+
     if (updateTaskDto.isDone !== undefined) {
       updates.push('isdone = $' + (values.length + 1));
       values.push(updateTaskDto.isDone);
@@ -165,13 +116,14 @@ export class AppController implements OnModuleInit, OnModuleDestroy {
       WHERE id = $1 AND deleted = false
       RETURNING *
     `;
-
     const res = await this.client.query(query, values);
+
     if (res.rows.length === 0) {
       throw new HttpException('Task not found', HttpStatus.NOT_FOUND);
     }
 
     const updatedTask = res.rows[0];
+
     return {
       id: Number(updatedTask.id),
       text: updatedTask.text,
@@ -181,9 +133,6 @@ export class AppController implements OnModuleInit, OnModuleDestroy {
   }
 
   @Get('bin')
-  // getBin() {
-  //   return this.bin;
-  // }
   async getBin(): Promise<Task[]> {
     const res = await this.client.query(
       // 'SELECT * FROM tasks WHERE deleted=true ORDER BY id ASC',
@@ -199,17 +148,6 @@ export class AppController implements OnModuleInit, OnModuleDestroy {
   }
 
   @Post('bin/:id')
-  // moveToBin(@Param('id', ParseIntPipe) id: number) {
-  //   const taskIndex = this.tasks.findIndex((t) => t.id === id);
-
-  //   if (taskIndex === -1) return { error: 'Task not found' };
-
-  //   const movedTask = this.tasks.splice(taskIndex, 1)[0];
-
-  //   this.bin = [movedTask, ...this.bin];
-
-  //   return movedTask;
-  // }
   async moveToBin(@Param('id', ParseIntPipe) id: number): Promise<Task> {
     const res = await this.client.query(
       'UPDATE tasks SET deleted=true WHERE id=$1 RETURNING *',
@@ -218,7 +156,6 @@ export class AppController implements OnModuleInit, OnModuleDestroy {
 
     if (res.rows.length === 0) {
       throw new HttpException('Task not found', HttpStatus.NOT_FOUND);
-      // return { error: 'Task not found' };
     }
 
     const movedTask = res.rows[0];
@@ -232,16 +169,6 @@ export class AppController implements OnModuleInit, OnModuleDestroy {
   }
 
   @Delete('bin/:id')
-  // deleteTask(@Param('id', ParseIntPipe) id: number) {
-  //   const taskIndex = this.bin.findIndex((t) => t.id === id);
-
-  //   if (taskIndex === -1)
-  //     return { error: `Task not found in bin, can't delete` };
-
-  //   const deletedTask = this.bin.splice(taskIndex, 1)[0];
-
-  //   return deletedTask;
-  // }
   async deleteTask(@Param('id', ParseIntPipe) id: number) {
     const res = await this.client.query(
       'DELETE FROM tasks WHERE id=$1 RETURNING *',
@@ -254,16 +181,7 @@ export class AppController implements OnModuleInit, OnModuleDestroy {
   }
 
   @Post('completed-to-bin')
-  // moveCompletedToBin() {
-  //   const completedTasks = this.tasks.filter((t) => t.isDone);
-  //   const activeTasks = this.tasks.filter((t) => !t.isDone);
-
-  //   this.tasks = activeTasks;
-  //   this.bin = [...completedTasks, ...this.bin];
-
-  //   return completedTasks;
-  // }
-  async moveCompletedToBin() {
+  async moveCompletedToBin(): Promise<{ moved: Task[]; tasks: Task[] }> {
     const completedRes = await this.client.query(
       'SELECT * FROM tasks WHERE isdone=true AND deleted=false',
     );
@@ -298,10 +216,6 @@ export class AppController implements OnModuleInit, OnModuleDestroy {
   }
 
   @Post('tasks/mark-all')
-  // markAll() {
-  //   this.tasks.forEach((t) => !t.isDone && (t.isDone = true));
-  //   return this.tasks;
-  // }
   async markAll(): Promise<Task[]> {
     await this.client.query(
       'UPDATE tasks SET isdone=true WHERE isdone=false AND deleted=false',
@@ -320,10 +234,6 @@ export class AppController implements OnModuleInit, OnModuleDestroy {
   }
 
   @Post('tasks/unmark-all')
-  // unmarkAll() {
-  //   this.tasks.forEach((t) => t.isDone && (t.isDone = false));
-  //   return this.tasks;
-  // }
   async unmarkAll(): Promise<Task[]> {
     await this.client.query(
       'UPDATE tasks SET isdone=false WHERE deleted=false',

@@ -72,7 +72,7 @@ export default function Task({
   return (
     <li style={{ padding: "5px 10px" }}>
       <Grid container spacing={2} size={12} direction={"row"}>
-        <Grid size={6}>
+        <Grid size={9} md={6}>
           {!isEditable ? (
             <label
               style={{
@@ -146,7 +146,7 @@ export default function Task({
             />
           )}
         </Grid>
-        <Grid container direction={"row"} size={6} spacing={2}>
+        <Grid container direction={"row"} size={3} md={6} spacing={2}>
           <Grid>
             <Btn
               title={isBin ? "Delete" : "Move to bin"}

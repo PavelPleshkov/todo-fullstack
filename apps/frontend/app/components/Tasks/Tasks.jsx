@@ -62,7 +62,9 @@ export default function Tasks() {
 
       if (response.ok && data.id !== undefined && !data.error) {
         setTasks((prev) =>
-          prev.map((t) => (t.id === id ? { ...t, ...data, isDone: Boolean(data.isDone) } : t))
+          prev.map((t) =>
+            t.id === id ? { ...t, ...data, isDone: Boolean(data.isDone) } : t,
+          ),
         );
       }
     } catch (error) {
