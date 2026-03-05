@@ -19,7 +19,8 @@ const validationSchema = yup.object({
 
 const trickyWords = ["boy", "day", "cat", "dog", "girl", "password"];
 
-export default function Form({ setIsSignedIn }) {
+// export default function Form({ setIsSignedIn }) {
+export default function Form() {
   const formik = useFormik({
     initialValues: {
       name: "",
@@ -28,7 +29,7 @@ export default function Form({ setIsSignedIn }) {
     validationSchema: validationSchema,
     onSubmit: (values) => {
       alert(JSON.stringify(values, null, 2));
-      setIsSignedIn(true);
+      // setIsSignedIn(true);
     },
   });
 
@@ -81,9 +82,9 @@ export default function Form({ setIsSignedIn }) {
         </Grid>
         <Grid size={12}>
           <div>
-            {String(isValid(formik.values.password))
+            {isValid(formik.values.password)
               ? "You can sign up with this password"
-              : "You cannot sign up with this password"}
+              : "You can't sign up with this password"}
           </div>
 
           <Button type="submit" variant="contained">

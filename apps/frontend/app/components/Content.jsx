@@ -8,14 +8,17 @@ import Form from "./Form/Form";
 export default function Content() {
   const theme = useContext(ThemeContext);
   const className = "content-" + theme;
-  const [isSignedIn, setIsSignedIn] = useState(false);
+  // const [isSignedIn, setIsSignedIn] = useState(false);
 
   return (
     <div className={"content " + className}>
       <Stack spacing={2}>
-        {isSignedIn && <Stopwatch />}
-        <Form setIsSignedIn={setIsSignedIn} />
-        {isSignedIn && <Tasks />}
+        {/* {isSignedIn && <Stopwatch />} */}
+        <Stopwatch />
+        {/* <Form setIsSignedIn={setIsSignedIn} /> */}
+        <Form />
+        {/* {isSignedIn && <Tasks />} */}
+        <Tasks />
       </Stack>
     </div>
   );
