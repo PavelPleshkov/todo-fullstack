@@ -48,7 +48,7 @@ export default function Form() {
   };
 
   return (
-    <form enableReinitialize={false} onSubmit={formik.handleSubmit}>
+    <form onSubmit={formik.handleSubmit}>
       <Grid
         container
         spacing={2}

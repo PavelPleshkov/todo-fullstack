@@ -129,7 +129,7 @@ export default function Stopwatch() {
   }, []);
 
   return (
-    <div>
+    <>
       <div style={{ padding: "10px" }}>
         Stopwatch: {"0" + hours.toFixed(0)}
         {" : "}
@@ -148,6 +148,6 @@ export default function Stopwatch() {
         setIsRunning={setIsRunning}
         handleResetBtn={handleResetBtn}
       />
-    </div>
+    </>
   );
 }
