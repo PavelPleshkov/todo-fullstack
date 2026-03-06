@@ -43,7 +43,7 @@ export class AppController implements OnModuleInit, OnModuleDestroy {
     this.client = new Client({
       host: 'localhost',
       port: 5432,
-      user: 'pavel',
+      user: 'todo_user',
       password: '',
       database: 'todo_db',
     });
