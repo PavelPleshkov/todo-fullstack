@@ -10,6 +10,7 @@ body {
   color: var(--foreground);
   font-family: var(--font-roboto);
   height: 100vh;
+  overflow-x: hidden;
 }
 
 .header-dark {

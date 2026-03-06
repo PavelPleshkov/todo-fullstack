@@ -11,24 +11,26 @@ export default function Home() {
 
   return (
     <ThemeContext value={theme}>
-      <Grid
-        container
-        direction={"column"}
-        size={12}
-        gridTemplateRows={"auto"}
-        sx={
-          theme === "dark"
-            ? { backgroundColor: "#363636", height: "100%" }
-            : { backgroundColor: "#f3f2f2cd", height: "100%" }
-        }
-      >
-        <Grid size={12}>
-          <Header setTheme={setTheme}></Header>
+      <div style={{ width: "100vw", maxWidth: "100vw", overflowX: "hidden" }}>
+        <Grid
+          container
+          direction={"column"}
+          size={12}
+          gridTemplateRows={"auto"}
+          sx={
+            theme === "dark"
+              ? { backgroundColor: "#363636", height: "100%" }
+              : { backgroundColor: "#f3f2f2cd", height: "100%" }
+          }
+        >
+          <Grid size={12}>
+            <Header setTheme={setTheme}></Header>
+          </Grid>
+          <Grid size={12}>
+            <Content></Content>
+          </Grid>
         </Grid>
-        <Grid size={12}>
-          <Content></Content>
-        </Grid>
-      </Grid>
+      </div>
     </ThemeContext>
   );
 }
