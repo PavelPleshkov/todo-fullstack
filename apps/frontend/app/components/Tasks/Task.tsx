@@ -7,6 +7,23 @@ import { useContext, useState } from "react";
 import Btn from "./Btn";
 import { ThemeContext } from "@/app/ThemeContext";
 
+export interface Task {
+  id: number;
+  text: string;
+  isDone: boolean;
+  date: string;
+}
+
+export interface TaskProps {
+  task: Task;
+  tasks: Task[];
+  setTasks: (tasks: Task[]) => void;
+  toggleTask: (id: number) => void;
+  bin: Task[];
+  setBin: (bin: Task[]) => void;
+  isBin: boolean;
+}
+
 export default function Task({
   task,
   tasks,
@@ -15,13 +32,13 @@ export default function Task({
   bin,
   setBin,
   isBin,
-}) {
+}: TaskProps): React.ReactNode {
   const [selfText, setSelfText] = useState(task.text);
   const [isEditable, setIsEditable] = useState(false);
 
   const theme = useContext(ThemeContext);
 
-  const editTask = async (id) => {
+  const editTask = async (id: number) => {
     if (isEditable) {
       try {
         const response = await fetch(`http://localhost:3001/api/tasks/${id}`, {
@@ -44,7 +61,7 @@ export default function Task({
     setIsEditable((prev) => !prev);
   };
 
-  const deleteTask = async (id) => {
+  const deleteTask = async (id: number) => {
     if (!isBin) {
       try {
         const response = await fetch(`http://localhost:3001/api/bin/${id}`, {
@@ -96,7 +113,7 @@ export default function Task({
                 <Grid direction={"row"}>
                   <input
                     key={task.isDone ? "checked" : "unchecked"}
-                    id={task.id}
+                    id={task.id.toString()}
                     type="checkbox"
                     checked={task.isDone}
                     onChange={() => toggleTask(task.id)}
@@ -116,7 +133,7 @@ export default function Task({
             </label>
           ) : (
             <input
-              id={task.id}
+              id={task.id.toString()}
               type="text"
               value={selfText}
               autoFocus={isEditable}

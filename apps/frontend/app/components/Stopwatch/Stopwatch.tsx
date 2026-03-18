@@ -3,12 +3,31 @@
 import { Button, Grid } from "@mui/material";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 
+interface RunBtnProps {
+  isRunning: boolean;
+  isDisabled: boolean;
+  setIsRunning: (isRunning: boolean) => void;
+  children: React.ReactNode;
+}
+
+interface ResetBtnProps {
+  handleResetBtn: () => void;
+  children: React.ReactNode;
+}
+
+interface StopwatchControlProps {
+  isRunning: boolean;
+  isDisabled: boolean;
+  setIsRunning: (isRunning: boolean) => void;
+  handleResetBtn: () => void;
+}
+
 const RunBtn = memo(function RunBtn({
   isRunning,
   isDisabled,
   setIsRunning,
   children,
-}) {
+}: RunBtnProps): React.ReactNode {
   return (
     <Button
       disabled={isDisabled}
@@ -38,7 +57,10 @@ const RunBtn = memo(function RunBtn({
   );
 });
 
-const ResetBtn = memo(function ResetBtn({ handleResetBtn, children }) {
+const ResetBtn = memo(function ResetBtn({
+  handleResetBtn,
+  children,
+}: ResetBtnProps): React.ReactNode {
   return (
     <Button
       onClick={handleResetBtn}
@@ -59,7 +81,7 @@ const StopwatchControl = memo(function StopwatchControl({
   isDisabled,
   setIsRunning,
   handleResetBtn,
-}) {
+}: StopwatchControlProps): React.ReactNode {
   // console.log("🔄 StopwatchControl render");
   return (
     <Grid container padding={"10px"} spacing={2}>
@@ -83,7 +105,7 @@ export default function Stopwatch() {
   const [isDisabled, setIsDisabled] = useState(false);
   const timeRef = useRef(0);
 
-  async function stopTime(timeId) {
+  async function stopTime(timeId: number) {
     clearInterval(timeId);
     await setIsRunning(false);
     return;
