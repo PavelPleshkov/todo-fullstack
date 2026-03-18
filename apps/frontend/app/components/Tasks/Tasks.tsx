@@ -3,13 +3,13 @@
 import { Grid } from "@mui/material";
 import { useEffect, useState } from "react";
 import AddTask from "./AddTask";
-import Task from "./Task";
+import Task, { Task as TaskType } from "./Task";
 
 export default function Tasks() {
-  const [tasks, setTasks] = useState([]);
-  const [sortOrder, setSortOrder] = useState("asc");
-  const [bin, setBin] = useState([]);
-  const [isBin, setIsBin] = useState(false);
+  const [tasks, setTasks] = useState<TaskType[]>([]);
+  const [sortOrder, setSortOrder] = useState<string>("asc");
+  const [bin, setBin] = useState<TaskType[]>([]);
+  const [isBin, setIsBin] = useState<boolean>(false);
 
   useEffect(() => {
     fetch("http://localhost:3001/api/tasks")
@@ -27,14 +27,16 @@ export default function Tasks() {
     }
   }, [isBin]);
 
-  const sortTasks = (tasks) => {
-    const sortedTasks = [...tasks].sort((a, b) => {
-      if (sortOrder === "asc") {
-        return a.id - b.id;
-      } else {
-        return b.id - a.id;
-      }
-    });
+  const sortTasks = (tasks: TaskType[]) => {
+    const sortedTasks: TaskType[] = [...tasks].sort(
+      (a: TaskType, b: TaskType) => {
+        if (sortOrder === "asc") {
+          return a.id - b.id;
+        } else {
+          return b.id - a.id;
+        }
+      },
+    );
 
     if (!isBin) {
       setTasks(sortedTasks);
@@ -45,8 +47,8 @@ export default function Tasks() {
     setSortOrder(sortOrder === "asc" ? "desc" : "asc");
   };
 
-  const toggleTask = async (id) => {
-    const task = tasks.find((t) => t.id === id);
+  const toggleTask = async (id: number) => {
+    const task: TaskType | undefined = tasks.find((t: TaskType) => t.id === id);
     if (!task) return;
 
     try {
@@ -61,8 +63,8 @@ export default function Tasks() {
       const data = await response.json();
 
       if (response.ok && data.id !== undefined && !data.error) {
-        setTasks((prev) =>
-          prev.map((t) =>
+        setTasks((prev: TaskType[]) =>
+          prev.map((t: TaskType) =>
             t.id === id ? { ...t, ...data, isDone: Boolean(data.isDone) } : t,
           ),
         );
@@ -91,7 +93,7 @@ export default function Tasks() {
         </h1>
         <ul>
           {!isBin
-            ? tasks.map((task) => {
+            ? tasks.map((task: TaskType) => {
                 return (
                   <Task
                     task={task}
@@ -101,10 +103,11 @@ export default function Tasks() {
                     key={task.id}
                     bin={bin}
                     setBin={setBin}
+                    isBin={isBin}
                   />
                 );
               })
-            : bin.map((task) => {
+            : bin.map((task: TaskType) => {
                 return (
                   <Task
                     task={task}

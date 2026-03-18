@@ -33,7 +33,7 @@ export default function Form() {
     },
   });
 
-  const isValid = (password) => {
+  const isValid = (password: string) => {
     if (!/[a-z]+/g.test(password)) return false;
     if (!/[A-Z]+/g.test(password)) return false;
     if (!/[\d]+/g.test(password)) return false;

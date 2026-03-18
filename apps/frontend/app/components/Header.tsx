@@ -3,10 +3,14 @@ import { Button, Grid, Icon } from "@mui/material";
 import { useContext } from "react";
 import { ThemeContext } from "../ThemeContext";
 
-export default function Header({ setTheme }) {
-  const theme = useContext(ThemeContext);
-  const className = "header-" + theme;
-  const classNameBtn = "theme-btn-" + theme;
+interface HeaderProps {
+  setTheme: (theme: string) => void;
+}
+
+export default function Header({ setTheme }: HeaderProps): React.ReactNode {
+  const theme: string = useContext(ThemeContext);
+  const className: string = "header-" + theme;
+  const classNameBtn: string = "theme-btn-" + theme;
 
   return (
     <header className={className}>
@@ -20,7 +24,7 @@ export default function Header({ setTheme }) {
         <h1 style={{ display: "flex", alignItems: "center" }}>
           <Grid container spacing={2} direction={"row"} alignItems={"center"}>
             <Icon sx={{ display: "block" }}>star</Icon>
-            <div>React, Next.js, Nest.js, PostgreSQL, formik, yup app</div>
+            <div>React, TS, Next.js, Nest.js, PostgreSQL, formik, yup app</div>
           </Grid>
         </h1>
         <Button

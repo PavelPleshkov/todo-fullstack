@@ -2,6 +2,18 @@ import { Grid } from "@mui/material";
 import { useContext, useState } from "react";
 import Btn from "./Btn";
 import { ThemeContext } from "@/app/ThemeContext";
+import { Task as TaskType } from "./Task";
+
+interface AddTaskProps {
+  tasks: TaskType[];
+  setTasks: (tasks: TaskType[]) => void;
+  sortTasks: (tasks: TaskType[]) => void;
+  sortOrder: string;
+  bin: TaskType[];
+  setBin: (bin: TaskType[]) => void;
+  isBin: boolean;
+  setIsBin: (isBin: boolean) => void;
+}
 
 export default function AddTask({
   tasks,
@@ -12,11 +24,11 @@ export default function AddTask({
   setBin,
   isBin,
   setIsBin,
-}) {
-  const [text, setText] = useState("");
-  const [isAddTaskFailed, setIsAddTaskFailed] = useState(false);
-  const theme = useContext(ThemeContext);
-  const className = "add-task-" + theme;
+}: AddTaskProps): React.ReactNode {
+  const [text, setText] = useState<string>("");
+  const [isAddTaskFailed, setIsAddTaskFailed] = useState<boolean>(false);
+  const theme: string = useContext(ThemeContext);
+  const className: string = "add-task-" + theme;
 
   const addTask = async () => {
     if (!text.trim()) {
@@ -58,7 +70,8 @@ export default function AddTask({
         const { moved, tasks: remainingTasks } = await response.json();
 
         setTasks(Array.isArray(remainingTasks) ? remainingTasks : []);
-        setBin((prev) => [...(Array.isArray(moved) ? moved : []), ...prev]);
+        // setBin((prev: TaskType[]) => [...(Array.isArray(moved) ? moved : []), ...prev]);
+        setBin([...(Array.isArray(moved) ? moved : []), ...bin]);
       }
     } catch (error) {
       console.log("Delete completed error: ", error);

@@ -6,9 +6,9 @@ import { useContext } from "react";
 import { ThemeContext } from "../ThemeContext";
 import Form from "./Form/Form";
 
-export default function Content() {
-  const theme = useContext(ThemeContext);
-  const className = "content-" + theme;
+export default function Content(): React.ReactNode {
+  const theme: string = useContext(ThemeContext);
+  const className: string = "content-" + theme;
 
   return (
     <div className={"content " + className}>
