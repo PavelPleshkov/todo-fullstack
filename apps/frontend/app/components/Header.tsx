@@ -13,7 +13,7 @@ export default function Header({ setTheme }: HeaderProps): React.ReactNode {
   const classNameBtn: string = "theme-btn-" + theme;
 
   return (
-    <header className={className}>
+    <header className={className} data-testid="header">
       <Grid
         container
         direction={"row"}
@@ -24,11 +24,14 @@ export default function Header({ setTheme }: HeaderProps): React.ReactNode {
         <h1 style={{ display: "flex", alignItems: "center" }}>
           <Grid container spacing={2} direction={"row"} alignItems={"center"}>
             <Icon sx={{ display: "block" }}>star</Icon>
-            <div>React, TS, Next.js, Nest.js, PostgreSQL, formik, yup app</div>
+            <div>
+              React, TS, Next.js, Nest.js, PostgreSQL, formik, yup, RTL, Jest
+            </div>
           </Grid>
         </h1>
         <Button
           className={classNameBtn}
+          data-testid="theme-btn"
           onClick={() => {
             setTheme(theme === "dark" ? "light" : "dark");
           }}
