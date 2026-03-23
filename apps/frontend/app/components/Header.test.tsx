@@ -33,13 +33,21 @@ describe("Header", () => {
   });
 
   it("theme button changes theme", async () => {
+    const header = screen.getByTestId("header");
     const themeBtn = screen.getByTestId("theme-btn");
 
     expect(themeBtn).toBeInTheDocument();
+    expect(header).toHaveClass("header-dark");
     expect(themeBtn).toHaveTextContent("Light");
 
     await userEvent.click(themeBtn);
 
+    expect(header).toHaveClass("header-light");
     expect(themeBtn).toHaveTextContent("Dark");
+
+    await userEvent.click(themeBtn);
+
+    expect(header).toHaveClass("header-dark");
+    expect(themeBtn).toHaveTextContent("Light");
   });
 });
