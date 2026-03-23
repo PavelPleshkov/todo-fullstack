@@ -23,7 +23,7 @@ export default function Btn({
     },
   },
   title,
-  variant = "contained",
+  variant,
   children,
 }: BtnProps): React.ReactNode {
   const theme: string = useContext(ThemeContext);
