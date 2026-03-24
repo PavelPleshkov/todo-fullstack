@@ -11,7 +11,7 @@ const validationSchema = yup.object({
     .string()
     .matches(
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/,
-      "Password must contain at least one lowercase letter, one uppercase letter, and one number",
+      "Password must be at least 4 characters and contain at least one lowercase letter, one uppercase letter, and one number",
     )
     .min(4, "Password must be at least 4 characters")
     .required("Password is required"),
@@ -48,7 +48,7 @@ export default function Form() {
   };
 
   return (
-    <form onSubmit={formik.handleSubmit}>
+    <form data-testid="form" onSubmit={formik.handleSubmit}>
       <Grid
         container
         spacing={2}
@@ -58,6 +58,7 @@ export default function Form() {
       >
         <Grid size={6}>
           <TextField
+            data-testid="name-input"
             label="Name"
             name="name"
             value={formik.values.name}
@@ -70,6 +71,7 @@ export default function Form() {
         </Grid>
         <Grid size={6}>
           <TextField
+            data-testid="password-input"
             label="Password"
             name="password"
             value={formik.values.password}
@@ -81,13 +83,13 @@ export default function Form() {
           />
         </Grid>
         <Grid size={12}>
-          <div>
+          <div data-testid="password-validation">
             {isValid(formik.values.password)
               ? "You can sign up with this password"
               : "You can't sign up with this password"}
           </div>
 
-          <Button type="submit" variant="contained">
+          <Button data-testid="submit-button" type="submit" variant="contained">
             Submit
           </Button>
         </Grid>

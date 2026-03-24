@@ -86,13 +86,16 @@ const StopwatchControl = memo(function StopwatchControl({
   return (
     <Grid container padding={"10px"} spacing={2}>
       <RunBtn
+        data-testid="run-btn"
         isRunning={isRunning}
         isDisabled={isDisabled}
         setIsRunning={setIsRunning}
       >
         {isRunning ? "Stop" : "Run"}
       </RunBtn>
-      <ResetBtn handleResetBtn={handleResetBtn}>Reset</ResetBtn>
+      <ResetBtn data-testid="reset-btn" handleResetBtn={handleResetBtn}>
+        Reset
+      </ResetBtn>
     </Grid>
   );
 });
@@ -151,7 +154,7 @@ export default function Stopwatch() {
   }, []);
 
   return (
-    <>
+    <div data-testid="stopwatch">
       <div style={{ padding: "10px" }}>
         Stopwatch: {"0" + hours.toFixed(0)}
         {" : "}
@@ -170,6 +173,6 @@ export default function Stopwatch() {
         setIsRunning={setIsRunning}
         handleResetBtn={handleResetBtn}
       />
-    </>
+    </div>
   );
 }

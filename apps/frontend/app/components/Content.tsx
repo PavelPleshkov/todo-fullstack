@@ -11,7 +11,7 @@ export default function Content(): React.ReactNode {
   const className: string = "content-" + theme;
 
   return (
-    <div className={"content " + className}>
+    <div className={"content " + className} data-testid="content">
       <Grid container direction={"column"} spacing={2}>
         <Grid size={12}>
           <Stopwatch />

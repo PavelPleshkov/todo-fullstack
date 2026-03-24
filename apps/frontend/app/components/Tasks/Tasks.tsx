@@ -75,7 +75,13 @@ export default function Tasks() {
   };
 
   return (
-    <Grid container size={12} direction={"column"} spacing={2}>
+    <Grid
+      container
+      size={12}
+      direction={"column"}
+      spacing={2}
+      data-testid={!isBin ? "tasks" : "bin"}
+    >
       <AddTask
         tasks={tasks}
         setTasks={setTasks}
