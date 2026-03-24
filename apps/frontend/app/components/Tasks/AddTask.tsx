@@ -120,9 +120,11 @@ export default function AddTask({
       alignItems={"center"}
       sx={{ padding: "10px 10px 10px" }}
       className={className}
+      data-testid="add-task"
     >
       <Grid size={4}>
         <input
+          data-testid="add-task-input"
           className={isAddTaskFailed ? "failed-adding" : ""}
           style={{
             backgroundColor: theme === "dark" ? "#363636" : "#ffffff",
