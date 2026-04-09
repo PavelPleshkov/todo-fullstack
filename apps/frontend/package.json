@@ -12,6 +12,7 @@
     "test:cov": "jest --coverage"
   },
   "dependencies": {
+    "@apollo/client": "^4.1.6",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@fontsource/roboto": "^5.2.9",
@@ -19,10 +20,12 @@
     "@mui/material": "^7.3.7",
     "@mui/styled-engine-sc": "^7.3.7",
     "formik": "^2.4.9",
+    "graphql": "^16.13.2",
     "next": "16.1.6",
     "pg": "^8.18.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "rxjs": "^7.8.2",
     "styled-components": "^6.3.8",
     "yup": "^1.7.1"
   },
