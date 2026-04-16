@@ -25,7 +25,7 @@ export interface TaskProps {
   task: Task;
   tasks: Task[];
   setTasks: (tasks: Task[]) => void;
-  toggleTask: (id: number) => void;
+  toggleTask?: (id: number) => void;
   bin: Task[];
   setBin: (bin: Task[]) => void;
   isBin: boolean;
@@ -144,15 +144,21 @@ export default function Task({
         <Grid size={{ xs: 9, md: 6 }}>
           {!isEditable ? (
             <label
+              className={isBin ? "" : "task-label"}
+              title={isBin ? "Can't edit in bin" : "Click to edit"}
               style={{
                 display: "block",
-                border: "1px solid #1d1d1d",
+                position: "relative",
+                // backgroundColor: task.isDone ? "transparent" : "#363636",
+                border: "1px solid rgba(29, 29, 29, 0.24)",
                 borderRadius: "5px",
                 width: "100%",
                 height: "100%",
-                padding: "5px",
-                overflow: "hidden",
-                opacity: task.isDone ? ".5" : "1",
+                padding: "10px 30px 10px 20px",
+                // overflow: "hidden",
+                // boxShadow: "0 4px 12px rgba(0,0,0,0.5)",
+                opacity: isBin || task.isDone ? ".7" : "1",
+                cursor: isBin ? "not-allowed" : "pointer",
               }}
             >
               <Grid
@@ -167,17 +173,29 @@ export default function Task({
                     key={task.isDone ? "checked" : "unchecked"}
                     id={task.id.toString()}
                     type="checkbox"
+                    disabled={isBin}
                     checked={task.isDone}
-                    onChange={() => toggleTask(task.id)}
+                    onChange={() =>
+                      toggleTask ? toggleTask(task.id) : undefined
+                    }
                     style={{
                       display: "block",
-                      margin: "0 10px",
+                      // display: "none",
+                      position: "absolute",
+                      right: "0",
+                      top: "0",
+                      margin: "10px",
+                      cursor: isBin ? "not-allowed" : "pointer",
                     }}
                   />
                 </Grid>
                 <Grid>
                   <div>{task.date}</div>
-                  <div>
+                  <div
+                  // style={{
+                  //   overflow: "hidden",
+                  // }}
+                  >
                     <b>{selfText}</b>
                   </div>
                 </Grid>
@@ -185,6 +203,7 @@ export default function Task({
             </label>
           ) : (
             <input
+              className={isBin ? "" : "task-input"}
               id={task.id.toString()}
               type="text"
               value={selfText}

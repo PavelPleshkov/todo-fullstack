@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000",
+    "codegen": "graphql-codegen --config codegen.yml",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -30,6 +31,8 @@
     "yup": "^1.7.1"
   },
   "devDependencies": {
+    "@graphql-codegen/cli": "^6.2.1",
+    "@graphql-codegen/client-preset": "^5.2.4",
     "@tailwindcss/postcss": "^4",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",

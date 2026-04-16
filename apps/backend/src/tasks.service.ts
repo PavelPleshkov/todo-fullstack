@@ -54,7 +54,7 @@ export class TasksService implements OnModuleInit, OnModuleDestroy {
 
   async findBin(): Promise<Task[]> {
     const res = await this.client.query(
-      'SELECT * FROM tasks WHERE deleted=true',
+      'SELECT * FROM tasks WHERE deleted=true ORDER BY id ASC',
     );
     return res.rows.map((row) => this.mapRow(row));
   }
@@ -132,7 +132,7 @@ export class TasksService implements OnModuleInit, OnModuleDestroy {
 
   async moveCompletedToBin(): Promise<{ moved: Task[]; tasks: Task[] }> {
     const completedRes = await this.client.query(
-      'SELECT * FROM tasks WHERE isdone=true AND deleted=false',
+      'SELECT * FROM tasks WHERE isdone=true AND deleted=false ORDER BY id ASC',
     );
     if (completedRes.rows.length === 0) {
       throw new HttpException('No completed tasks found', HttpStatus.NOT_FOUND);
@@ -145,7 +145,7 @@ export class TasksService implements OnModuleInit, OnModuleDestroy {
     const moved = completedRes.rows.map((row) => this.mapRow(row));
 
     const tasksRes = await this.client.query(
-      'SELECT * FROM tasks WHERE deleted=false',
+      'SELECT * FROM tasks WHERE deleted=false ORDER BY id ASC',
     );
     const tasks = tasksRes.rows.map((row) => this.mapRow(row));
 
@@ -157,7 +157,7 @@ export class TasksService implements OnModuleInit, OnModuleDestroy {
       'UPDATE tasks SET isdone=true WHERE isdone=false AND deleted=false',
     );
     const res = await this.client.query(
-      'SELECT * FROM tasks WHERE deleted=false',
+      'SELECT * FROM tasks WHERE deleted=false ORDER BY id ASC',
     );
     return res.rows.map((row) => this.mapRow(row));
   }
@@ -167,7 +167,7 @@ export class TasksService implements OnModuleInit, OnModuleDestroy {
       'UPDATE tasks SET isdone=false WHERE deleted=false',
     );
     const res = await this.client.query(
-      'SELECT * FROM tasks WHERE deleted=false',
+      'SELECT * FROM tasks WHERE deleted=false ORDER BY id ASC',
     );
     return res.rows.map((row) => this.mapRow(row));
   }

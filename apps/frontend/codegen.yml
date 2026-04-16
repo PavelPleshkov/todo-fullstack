@@ -1,0 +1,12 @@
+schema: ../backend/src/schema.gql
+
+documents:
+  - "app/lib/graphql/operations.ts"
+
+ignoreNoDocuments: true
+
+generates:
+  app/lib/graphql/generated/:
+    preset: client
+    presetConfig:
+      fragmentMasking: false

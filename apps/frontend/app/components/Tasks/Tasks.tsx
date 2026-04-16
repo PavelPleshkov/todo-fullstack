@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery } from "@apollo/client/react";
 import { Grid } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import AddTask from "./AddTask";
 import Task, { Task as TaskType } from "./Task";
 import {
@@ -13,7 +13,13 @@ import {
 
 export default function Tasks() {
   const [tasks, setTasks] = useState<TaskType[]>([]);
-  const [sortOrder, setSortOrder] = useState<string>("asc");
+  // const [sortOrder, setSortOrder] = useState<string>("asc");
+  const [sortDirectionActive, setSortDirectionActive] = useState<
+    "asc" | "desc"
+  >("asc");
+  const [sortDirectionBin, setSortDirectionBin] = useState<"asc" | "desc">(
+    "asc",
+  );
   const [bin, setBin] = useState<TaskType[]>([]);
   const [isBin, setIsBin] = useState<boolean>(false);
 
@@ -53,28 +59,61 @@ export default function Tasks() {
     }
   }, [isBin, binData]);
 
-  const sortTasks = (tasks: TaskType[]) => {
-    const sortedTasks: TaskType[] = [...tasks].sort(
-      (a: TaskType, b: TaskType) => {
-        if (sortOrder === "asc") {
-          return a.id - b.id;
-        } else {
-          return b.id - a.id;
-        }
-      },
+  function sortTasksByDirection(
+    tasks: TaskType[],
+    direction: "asc" | "desc",
+  ): TaskType[] {
+    return [...tasks].sort((a: TaskType, b: TaskType) =>
+      direction === "asc" ? a.id - b.id : b.id - a.id,
     );
+  }
 
-    if (!isBin) {
-      setTasks(sortedTasks);
+  const displayTasks: TaskType[] = useMemo(() => {
+    return sortTasksByDirection(tasks, sortDirectionActive);
+  }, [tasks, sortDirectionActive]);
+
+  const displayBin: TaskType[] = useMemo(() => {
+    return sortTasksByDirection(bin, sortDirectionBin);
+  }, [bin, sortDirectionBin]);
+
+  const sortDirection = isBin ? sortDirectionBin : sortDirectionActive;
+
+  function sortTasks() {
+    if (isBin) {
+      setSortDirectionBin((direction) =>
+        direction === "asc" ? "desc" : "asc",
+      );
     } else {
-      setBin(sortedTasks);
+      setSortDirectionActive((direction) =>
+        direction === "asc" ? "desc" : "asc",
+      );
     }
+  }
 
-    setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-  };
+  // const sortTasks = (tasks: TaskType[]) => {
+  //   const sortedTasks: TaskType[] = [...tasks].sort(
+  //     (a: TaskType, b: TaskType) => {
+  //       if (sortOrder === "asc") {
+  //         return a.id - b.id;
+  //       } else {
+  //         return b.id - a.id;
+  //       }
+  //     },
+  //   );
+
+  //   if (!isBin) {
+  //     setTasks(sortedTasks);
+  //   } else {
+  //     setBin(sortedTasks);
+  //   }
+
+  //   setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+  // };
 
   const toggleTask = async (id: number) => {
-    const task: TaskType | undefined = tasks.find((t: TaskType) => t.id === id);
+    const task: TaskType | undefined = displayTasks.find(
+      (t: TaskType) => t.id === id,
+    );
     if (!task) return;
 
     // try {
@@ -122,7 +161,7 @@ export default function Tasks() {
         tasks={tasks}
         setTasks={setTasks}
         sortTasks={sortTasks}
-        sortOrder={sortOrder}
+        sortDirection={sortDirection}
         bin={bin}
         setBin={setBin}
         isBin={isBin}
@@ -133,19 +172,19 @@ export default function Tasks() {
 
       <Grid size={12}>
         <h1 style={{ padding: "10px 20px" }}>
-          {!isBin ? "Tasks" : bin.length ? "Bin" : "Bin is empty"}
+          {!isBin ? "Tasks" : displayBin.length ? "Bin" : "Bin is empty"}
         </h1>
         <ul>
           {!isBin
-            ? tasks.map((task: TaskType) => {
+            ? displayTasks.map((task: TaskType) => {
                 return (
                   <Task
                     task={task}
-                    tasks={tasks}
+                    tasks={displayTasks}
                     setTasks={setTasks}
                     toggleTask={() => toggleTask(task.id)}
                     key={task.id}
-                    bin={bin}
+                    bin={displayBin}
                     setBin={setBin}
                     isBin={isBin}
                     refetchActive={refetchActive}
@@ -153,15 +192,15 @@ export default function Tasks() {
                   />
                 );
               })
-            : bin.map((task: TaskType) => {
+            : displayBin.map((task: TaskType) => {
                 return (
                   <Task
                     task={task}
-                    tasks={tasks}
+                    tasks={displayBin}
                     setTasks={setTasks}
-                    toggleTask={() => toggleTask(task.id)}
+                    // toggleTask={() => toggleTask(task.id)}
                     key={task.id}
-                    bin={bin}
+                    bin={displayBin}
                     setBin={setBin}
                     isBin={isBin}
                     refetchActive={refetchActive}

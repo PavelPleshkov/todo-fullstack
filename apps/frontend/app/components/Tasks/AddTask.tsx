@@ -15,8 +15,8 @@ import {
 interface AddTaskProps {
   tasks: TaskType[];
   setTasks: (tasks: TaskType[]) => void;
-  sortTasks: (tasks: TaskType[]) => void;
-  sortOrder: string;
+  sortTasks: () => void;
+  sortDirection: "asc" | "desc";
   bin: TaskType[];
   setBin: (bin: TaskType[]) => void;
   isBin: boolean;
@@ -29,7 +29,7 @@ export default function AddTask({
   tasks,
   setTasks,
   sortTasks,
-  sortOrder,
+  sortDirection,
   bin,
   setBin,
   isBin,
@@ -243,10 +243,12 @@ export default function AddTask({
           <Btn
             variant="contained"
             onClick={() => {
-              sortTasks(!isBin ? tasks : bin);
+              sortTasks();
             }}
           >
-            Sort {sortOrder === "asc" ? "asc" : "desc"}
+            {/* Sort {sortDirection} */}
+            {sortDirection === "asc" ? "↑" : "↓"} Sort{" "}
+            {sortDirection === "asc" ? "↑" : "↓"}
           </Btn>
         </Grid>
         <Grid>
