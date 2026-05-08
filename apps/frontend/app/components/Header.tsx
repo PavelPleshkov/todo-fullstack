@@ -25,7 +25,8 @@ export default function Header({ setTheme }: HeaderProps): React.ReactNode {
           <Grid container spacing={2} direction={"row"} alignItems={"center"}>
             <Icon sx={{ display: "block" }}>star</Icon>
             <div>
-              React, TS, Next.js, Nest.js, PostgreSQL, formik, yup, RTL, Jest
+              React, TS, Next.js, Nest.js, PostgreSQL, formik, yup, RTL, Jest,
+              GraphQL
             </div>
           </Grid>
         </h1>
