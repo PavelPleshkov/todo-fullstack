@@ -246,7 +246,7 @@ export default function Task({
           </Grid>
           <Grid>
             <Btn
-              disabled={isBin}
+              disabled={isBin || task.isDone}
               variant="contained"
               onClick={() => editTask(task.id)}
             >
