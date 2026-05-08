@@ -11,14 +11,29 @@
   "devDependencies": {
     "prettier": "^3.7.4",
     "turbo": "^2.8.9",
-    "typescript": "5.9.2"
+    "typescript": "5.9.2",
+    "@nestjs/graphql": "13.2.4",
+    "@nestjs/apollo": "13.2.4"
   },
   "engines": {
     "node": ">=18"
   },
   "packageManager": "yarn@1.22.22",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ]
+  "workspaces": {
+    "packages": [
+      "apps/*",
+      "packages/*"
+    ],
+    "nohoist": [
+      "backend/**/@nestjs/**",
+      "backend/**/@apollo/**"
+    ]
+  },
+  "resolutions": {
+    "@nestjs/common": "11.1.14",
+    "@nestjs/core": "11.1.14",
+    "@nestjs/platform-express": "11.1.14",
+    "@nestjs/graphql": "13.2.4",
+    "@nestjs/apollo": "13.2.4"
+  }
 }

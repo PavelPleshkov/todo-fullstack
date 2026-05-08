@@ -4,31 +4,48 @@ import Btn from "./Btn";
 import { ThemeContext } from "@/app/ThemeContext";
 import { Task as TaskType } from "./Task";
 
+import { useMutation } from "@apollo/client/react";
+import {
+  CREATE_TASK_MUTATION,
+  MARK_ALL_MUTATION,
+  MOVE_COMPLETED_MUTATION,
+  UNMARK_ALL_MUTATION,
+} from "@/app/lib/graphql/operations";
+
 interface AddTaskProps {
   tasks: TaskType[];
   setTasks: (tasks: TaskType[]) => void;
-  sortTasks: (tasks: TaskType[]) => void;
-  sortOrder: string;
+  sortTasks: () => void;
+  sortDirection: "asc" | "desc";
   bin: TaskType[];
   setBin: (bin: TaskType[]) => void;
   isBin: boolean;
   setIsBin: (isBin: boolean) => void;
+  refetchActive: () => Promise<unknown>;
+  refetchBin: () => Promise<unknown>;
 }
 
 export default function AddTask({
   tasks,
   setTasks,
   sortTasks,
-  sortOrder,
+  sortDirection,
   bin,
   setBin,
   isBin,
   setIsBin,
+  refetchActive,
+  refetchBin,
 }: AddTaskProps): React.ReactNode {
   const [text, setText] = useState<string>("");
   const [isAddTaskFailed, setIsAddTaskFailed] = useState<boolean>(false);
   const theme: string = useContext(ThemeContext);
   const className: string = "add-task-" + theme;
+
+  const [createTaskMut] = useMutation(CREATE_TASK_MUTATION);
+  const [moveCompletedMut] = useMutation(MOVE_COMPLETED_MUTATION);
+  const [markAllMut] = useMutation(MARK_ALL_MUTATION);
+  const [unmarkAllMut] = useMutation(UNMARK_ALL_MUTATION);
 
   const addTask = async () => {
     if (!text.trim()) {
@@ -39,20 +56,33 @@ export default function AddTask({
 
     setIsAddTaskFailed(false);
 
+    // try {
+    //   const response = await fetch("http://localhost:3001/api/tasks", {
+    //     method: "POST",
+    //     body: JSON.stringify({ text: text.trim(), isDone: false }),
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //     },
+    //   });
+
+    //   if (response.ok) {
+    //     const newTask = await response.json();
+
+    //     setTasks([newTask, ...tasks]);
+    //     setText("");
+    //   }
+    // } catch (error) {
+    //   console.error("Add task failed:", error);
+    // }
+
     try {
-      const response = await fetch("http://localhost:3001/api/tasks", {
-        method: "POST",
-        body: JSON.stringify({ text: text.trim(), isDone: false }),
-        headers: {
-          "Content-Type": "application/json",
-        },
+      const { data } = await createTaskMut({
+        variables: { input: { text: text.trim(), isDone: false } },
       });
-
-      if (response.ok) {
-        const newTask = await response.json();
-
-        setTasks([newTask, ...tasks]);
+      if (data?.createTask) {
+        setTasks([data.createTask, ...tasks]);
         setText("");
+        await refetchActive();
       }
     } catch (error) {
       console.error("Add task failed:", error);
@@ -60,18 +90,39 @@ export default function AddTask({
   };
 
   const deleteCompleted = async () => {
+    // try {
+    //   const response = await fetch(
+    //     "http://localhost:3001/api/completed-to-bin",
+    //     { method: "POST" },
+    //   );
+
+    //   if (response.ok) {
+    //     const { moved, tasks: remainingTasks } = await response.json();
+
+    //     setTasks(Array.isArray(remainingTasks) ? remainingTasks : []);
+    //     // setBin((prev: TaskType[]) => [...(Array.isArray(moved) ? moved : []), ...prev]);
+    //     setBin([...(Array.isArray(moved) ? moved : []), ...bin]);
+    //   }
+    // } catch (error) {
+    //   console.log("Delete completed error: ", error);
+    // }
+
     try {
-      const response = await fetch(
-        "http://localhost:3001/api/completed-to-bin",
-        { method: "POST" },
-      );
-
-      if (response.ok) {
-        const { moved, tasks: remainingTasks } = await response.json();
-
-        setTasks(Array.isArray(remainingTasks) ? remainingTasks : []);
-        // setBin((prev: TaskType[]) => [...(Array.isArray(moved) ? moved : []), ...prev]);
-        setBin([...(Array.isArray(moved) ? moved : []), ...bin]);
+      const { data } = await moveCompletedMut();
+      if (data?.moveCompletedToBin) {
+        setTasks(
+          Array.isArray(data.moveCompletedToBin.tasks)
+            ? data.moveCompletedToBin.tasks
+            : [],
+        );
+        setBin([
+          ...(Array.isArray(data.moveCompletedToBin.moved)
+            ? data.moveCompletedToBin.moved
+            : []),
+          ...bin,
+        ]);
+        await refetchActive();
+        await refetchBin();
       }
     } catch (error) {
       console.log("Delete completed error: ", error);
@@ -79,35 +130,55 @@ export default function AddTask({
   };
 
   const markAll = async () => {
+    // try {
+    //   const response = await fetch("http://localhost:3001/api/tasks/mark-all", {
+    //     method: "POST",
+    //   });
+
+    //   if (response.ok) {
+    //     const markedTasks = await response.json();
+
+    //     setTasks(markedTasks);
+    //   }
+    // } catch (error) {
+    //   console.log("marking all tasks error: ", error);
+    // }
+
     try {
-      const response = await fetch("http://localhost:3001/api/tasks/mark-all", {
-        method: "POST",
-      });
-
-      if (response.ok) {
-        const markedTasks = await response.json();
-
-        setTasks(markedTasks);
+      const { data } = await markAllMut();
+      if (data?.markAllActiveTasks) {
+        setTasks(data.markAllActiveTasks);
+        await refetchActive();
       }
     } catch (error) {
-      console.log("marking all tasks error: ", error);
+      console.log("Mark all tasks error: ", error);
     }
   };
 
   const unmarkAll = async () => {
+    // try {
+    //   const response = await fetch(
+    //     "http://localhost:3001/api/tasks/unmark-all",
+    //     { method: "POST" },
+    //   );
+
+    //   if (response.ok) {
+    //     const unmarkedTasks = await response.json();
+
+    //     setTasks(unmarkedTasks);
+    //   }
+    // } catch (error) {
+    //   console.log("unmarking all tasks error: ", error);
+    // }
+
     try {
-      const response = await fetch(
-        "http://localhost:3001/api/tasks/unmark-all",
-        { method: "POST" },
-      );
-
-      if (response.ok) {
-        const unmarkedTasks = await response.json();
-
-        setTasks(unmarkedTasks);
+      const { data } = await unmarkAllMut();
+      if (data?.unmarkAllActiveTasks) {
+        setTasks(data.unmarkAllActiveTasks);
+        await refetchActive();
       }
     } catch (error) {
-      console.log("unmarking all tasks error: ", error);
+      console.log("Unmark all tasks error: ", error);
     }
   };
 
@@ -172,10 +243,12 @@ export default function AddTask({
           <Btn
             variant="contained"
             onClick={() => {
-              sortTasks(!isBin ? tasks : bin);
+              sortTasks();
             }}
           >
-            Sort {sortOrder === "asc" ? "asc" : "desc"}
+            {/* Sort {sortDirection} */}
+            {sortDirection === "asc" ? "↑" : "↓"} Sort{" "}
+            {sortDirection === "asc" ? "↑" : "↓"}
           </Btn>
         </Grid>
         <Grid>

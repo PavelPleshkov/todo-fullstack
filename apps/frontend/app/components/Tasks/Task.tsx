@@ -7,6 +7,13 @@ import { useContext, useState } from "react";
 import Btn from "./Btn";
 import { ThemeContext } from "@/app/ThemeContext";
 
+import { useMutation } from "@apollo/client/react";
+import {
+  MOVE_TO_BIN_MUTATION,
+  PERMANENTLY_DELETE_MUTATION,
+  UPDATE_TASK_MUTATION,
+} from "@/app/lib/graphql/operations";
+
 export interface Task {
   id: number;
   text: string;
@@ -18,10 +25,12 @@ export interface TaskProps {
   task: Task;
   tasks: Task[];
   setTasks: (tasks: Task[]) => void;
-  toggleTask: (id: number) => void;
+  toggleTask?: (id: number) => void;
   bin: Task[];
   setBin: (bin: Task[]) => void;
   isBin: boolean;
+  refetchActive: () => Promise<unknown>;
+  refetchBin: () => Promise<unknown>;
 }
 
 export default function Task({
@@ -32,27 +41,47 @@ export default function Task({
   bin,
   setBin,
   isBin,
+  refetchActive,
+  refetchBin,
 }: TaskProps): React.ReactNode {
   const [selfText, setSelfText] = useState(task.text);
   const [isEditable, setIsEditable] = useState(false);
 
   const theme = useContext(ThemeContext);
 
+  const [updateTaskMut] = useMutation(UPDATE_TASK_MUTATION);
+  const [moveToBinMut] = useMutation(MOVE_TO_BIN_MUTATION);
+  const [permanentlyDeleteMut] = useMutation(PERMANENTLY_DELETE_MUTATION);
+
   const editTask = async (id: number) => {
     if (isEditable) {
+      // try {
+      //   const response = await fetch(`http://localhost:3001/api/tasks/${id}`, {
+      //     method: "PUT",
+      //     headers: {
+      //       "Content-Type": "application/json",
+      //     },
+      //     body: JSON.stringify({ text: selfText }),
+      //   });
+
+      //   if (response.ok) {
+      //     const updatedTask = await response.json();
+
+      //     setTasks(tasks.map((t) => (t.id === id ? updatedTask : t)));
+      //   }
+      // } catch (error) {
+      //   console.log("Edit error: ", error);
+      // }
       try {
-        const response = await fetch(`http://localhost:3001/api/tasks/${id}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ text: selfText }),
+        const { data } = await updateTaskMut({
+          variables: { id, input: { text: selfText } },
         });
 
-        if (response.ok) {
-          const updatedTask = await response.json();
-
-          setTasks(tasks.map((t) => (t.id === id ? updatedTask : t)));
+        if (data?.updateTask) {
+          setTasks(
+            tasks.map((task) => (task.id === id ? data.updateTask : task)),
+          );
+          await refetchActive();
         }
       } catch (error) {
         console.log("Edit error: ", error);
@@ -63,25 +92,48 @@ export default function Task({
 
   const deleteTask = async (id: number) => {
     if (!isBin) {
-      try {
-        const response = await fetch(`http://localhost:3001/api/bin/${id}`, {
-          method: "POST",
-        });
+      //   try {
+      //     const response = await fetch(`http://localhost:3001/api/bin/${id}`, {
+      //       method: "POST",
+      //     });
 
-        if (response.ok) {
-          setTasks(tasks.filter((t) => t.id !== id));
+      //     if (response.ok) {
+      //       setTasks(tasks.filter((t) => t.id !== id));
+      //       setBin([task, ...bin]);
+      //     }
+      //   } catch (error) {
+      //     console.log("Delete error: ", error);
+      //   }
+      // } else {
+      //   const response = await fetch(`http://localhost:3001/api/bin/${id}`, {
+      //     method: "DELETE",
+      //   });
+
+      //   if (response.ok) {
+      //     setBin(bin.filter((t) => t.id !== id));
+      //   }
+      // }
+
+      try {
+        const { data } = await moveToBinMut({ variables: { id } });
+        if (data?.moveTaskToBin) {
+          setTasks(tasks.filter((task) => task.id !== id));
           setBin([task, ...bin]);
+          await refetchActive();
+          await refetchBin();
         }
       } catch (error) {
         console.log("Delete error: ", error);
       }
     } else {
-      const response = await fetch(`http://localhost:3001/api/bin/${id}`, {
-        method: "DELETE",
-      });
-
-      if (response.ok) {
-        setBin(bin.filter((t) => t.id !== id));
+      try {
+        const { data } = await permanentlyDeleteMut({ variables: { id } });
+        if (data?.permanentlyDeleteTask) {
+          setBin(bin.filter((task) => task.id !== id));
+          await refetchBin();
+        }
+      } catch (error) {
+        console.log("Delete error: ", error);
       }
     }
   };
@@ -92,15 +144,21 @@ export default function Task({
         <Grid size={{ xs: 9, md: 6 }}>
           {!isEditable ? (
             <label
+              className={isBin ? "" : "task-label"}
+              title={isBin ? "Can't edit in bin" : "Click to edit"}
               style={{
                 display: "block",
-                border: "1px solid #1d1d1d",
+                position: "relative",
+                // backgroundColor: task.isDone ? "transparent" : "#363636",
+                border: "1px solid rgba(29, 29, 29, 0.24)",
                 borderRadius: "5px",
                 width: "100%",
                 height: "100%",
-                padding: "5px",
-                overflow: "hidden",
-                opacity: task.isDone ? ".5" : "1",
+                padding: "10px 30px 10px 20px",
+                // overflow: "hidden",
+                // boxShadow: "0 4px 12px rgba(0,0,0,0.5)",
+                opacity: isBin || task.isDone ? ".7" : "1",
+                cursor: isBin ? "not-allowed" : "pointer",
               }}
             >
               <Grid
@@ -115,17 +173,29 @@ export default function Task({
                     key={task.isDone ? "checked" : "unchecked"}
                     id={task.id.toString()}
                     type="checkbox"
+                    disabled={isBin}
                     checked={task.isDone}
-                    onChange={() => toggleTask(task.id)}
+                    onChange={() =>
+                      toggleTask ? toggleTask(task.id) : undefined
+                    }
                     style={{
                       display: "block",
-                      margin: "0 10px",
+                      // display: "none",
+                      position: "absolute",
+                      right: "0",
+                      top: "0",
+                      margin: "10px",
+                      cursor: isBin ? "not-allowed" : "pointer",
                     }}
                   />
                 </Grid>
                 <Grid>
                   <div>{task.date}</div>
-                  <div>
+                  <div
+                  // style={{
+                  //   overflow: "hidden",
+                  // }}
+                  >
                     <b>{selfText}</b>
                   </div>
                 </Grid>
@@ -133,6 +203,7 @@ export default function Task({
             </label>
           ) : (
             <input
+              className={isBin ? "" : "task-input"}
               id={task.id.toString()}
               type="text"
               value={selfText}

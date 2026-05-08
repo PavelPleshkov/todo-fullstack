@@ -1,0 +1,40 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+input CreateTaskInput {
+  isDone: Boolean!
+  text: String!
+}
+
+type MoveCompletedResult {
+  moved: [Task!]!
+  tasks: [Task!]!
+}
+
+type Mutation {
+  createTask(input: CreateTaskInput!): Task!
+  markAllActiveTasks: [Task!]!
+  moveCompletedToBin: MoveCompletedResult!
+  moveTaskToBin(id: Int!): Task!
+  permanentlyDeleteTask(id: Int!): Boolean!
+  unmarkAllActiveTasks: [Task!]!
+  updateTask(id: Int!, input: UpdateTaskInput!): Task!
+}
+
+type Query {
+  activeTasks: [Task!]!
+  binTasks: [Task!]!
+}
+
+type Task {
+  date: String!
+  id: Int!
+  isDone: Boolean!
+  text: String!
+}
+
+input UpdateTaskInput {
+  isDone: Boolean
+  text: String
+}
