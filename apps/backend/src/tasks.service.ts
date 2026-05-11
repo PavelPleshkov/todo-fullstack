@@ -29,7 +29,7 @@ export class TasksService implements OnModuleInit, OnModuleDestroy {
       database: 'todo_db',
     });
     await this.client.connect();
-    console.log('✅ PostgreSQL подключен!');
+    console.log('✅ PostgreSQL connected!');
   }
 
   async onModuleDestroy() {
