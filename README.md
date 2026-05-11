@@ -30,7 +30,7 @@ From the repo root:
 yarn install
 ```
 
-## Start local
+## Start local servers
 
 From the repo root:
 
