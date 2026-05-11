@@ -1,3 +1,15 @@
+## Frontend + Backend
+
+To start both dev servers with one command run application from the root:
+
+```bash
+
+yarn dev
+
+```
+
+or use the next separate steps
+
 ## Frontend
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/create-next-app).
@@ -45,7 +57,7 @@ First, run the development server:
 
 ```bash
 
-yarn start:dev
+yarn dev
 
 ```
 
