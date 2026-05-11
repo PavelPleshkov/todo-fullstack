@@ -70,8 +70,9 @@
 ### Database
 
 - **Client:** `pg` `Client` in `apps/backend/src/tasks.service.ts`.
-- **Connection (currently hardcoded in service):** `host: localhost`, `port: 5432`, `user: todo_user`, `password: ''`, `database: todo_db` — for production/local overrides, inspect this file and any future env-based config.
-- **Table:** `tasks` with columns used in SQL (`deleted`, `text`, `isDone` / `isdone`, etc. — see `tasks.service.ts`).
+- **Configuration:** `PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD`, `PGDATABASE` in `apps/backend/.env` (template: `apps/backend/.env.example`), loaded via `@nestjs/config` (`ConfigModule` in `app.module.ts`, `ConfigService` in `TasksService`). Defaults match the former hardcoded values if variables are omitted.
+- **Setup:** [docs/local-database.md](local-database.md); schema: `apps/backend/db/schema.sql`.
+- **Table:** `tasks` — columns align with `schema.sql` and SQL in `tasks.service.ts`.
 
 ### Frontend GraphQL client
 

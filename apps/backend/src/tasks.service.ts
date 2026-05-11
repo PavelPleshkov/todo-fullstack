@@ -8,6 +8,7 @@ import {
   OnModuleDestroy,
   OnModuleInit,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Client } from 'pg';
 import type { Task } from './graphql/task.types';
 
@@ -20,13 +21,21 @@ export type UpdateTaskPayload = {
 export class TasksService implements OnModuleInit, OnModuleDestroy {
   private client!: Client;
 
+  constructor(private readonly configService: ConfigService) {}
+
   async onModuleInit() {
+    const host = this.configService.get<string>('PGHOST', 'localhost');
+    const port = parseInt(this.configService.get<string>('PGPORT', '5432'), 10);
+    const user = this.configService.get<string>('PGUSER', 'todo_user');
+    const password = this.configService.get<string>('PGPASSWORD', '');
+    const database = this.configService.get<string>('PGDATABASE', 'todo_db');
+
     this.client = new Client({
-      host: 'localhost',
-      port: 5432,
-      user: 'todo_user',
-      password: '',
-      database: 'todo_db',
+      host,
+      port,
+      user,
+      password,
+      database,
     });
     await this.client.connect();
     console.log('✅ PostgreSQL connected!');

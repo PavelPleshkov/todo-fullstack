@@ -22,7 +22,7 @@ Shared libraries live under **`packages/*`** (for example `@repo/ui`).
 
 - Node.js **>= 18**
 - Yarn **1.x** (repo uses `yarn@1.22.22`)
-- PostgreSQL (local) — backend expects a running instance and a **`tasks`** table. There is **no** checked-in SQL migration in this repo; infer expected columns from queries in `apps/backend/src/tasks.service.ts`. Default connection parameters are in the same file and in [docs/CODEBASE_MAP.md](docs/CODEBASE_MAP.md) (Database).
+- PostgreSQL (local) — copy `apps/backend/.env.example` to `apps/backend/.env`, then follow **[docs/local-database.md](docs/local-database.md)** (create user/database, apply `apps/backend/db/schema.sql`). Connection variables: `PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD`, `PGDATABASE`.
 
 ---
 
@@ -78,4 +78,4 @@ yarn format        # Prettier --write (formats files in place): **/*.{ts,tsx,md}
 
 - [docs/CODEBASE_MAP.md](docs/CODEBASE_MAP.md) — canonical repository map (layout, runtime, API, quality gates, conventions).
 - After **GraphQL schema** changes on the backend, regenerate the frontend client types from `apps/frontend`: `yarn codegen` (see `apps/frontend/codegen.yml`).
-- Per-app READMEs: `apps/frontend/README.md`, `apps/docs/README.md`, `apps/backend/README.md` (the backend README is largely upstream Nest boilerplate; runtime DB wiring lives in `apps/backend/src/tasks.service.ts`).
+- Per-app READMEs: `apps/frontend/README.md`, `apps/docs/README.md`, `apps/backend/README.md` (the backend README is largely upstream Nest boilerplate). **Database:** [docs/local-database.md](docs/local-database.md), template `apps/backend/.env.example`, SQL `apps/backend/db/schema.sql`, queries in `apps/backend/src/tasks.service.ts`.
