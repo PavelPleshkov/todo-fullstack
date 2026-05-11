@@ -29,3 +29,11 @@ From the repo root:
 ```bash
 yarn install
 ```
+
+## Start local
+
+From the repo root:
+
+```bash
+yarn dev
+```
