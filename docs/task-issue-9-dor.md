@@ -8,7 +8,7 @@ Implement the UI changes below (see GitHub issue #9):
 
 1. Keep the theme toggle (**Theme button**) **fixed within the viewport** while scrolling: it must stay on screen in the same visual position relative to the window, not scroll away with the page. Implementation: **`position: fixed`** on the theme button only (or a minimal wrapper around it only); the **`<header>`** block stays in normal document flow and **keeps its current height** (see Constraints). In the **initial state** (page at the top, no scroll), the button must occupy the **same visual position** as in the current implementation before this work—no jump to another corner or offset relative to the previous header edge, **subject to** the spacing rules below (minimum gaps override if they would otherwise conflict).
 2. Add the text **“AI”** to the header’s list of used tools, **immediately after** “GraphQL” (same line/block as the other tools).
-3. **Clearance and no overlap:** the theme button must **never overlap** the header technology text when that text becomes **longer** (including after adding “AI”) or when the **viewport width shrinks**. There must be a **minimum horizontal gap of 10px** between the header text (technology list) and the nearest edge of the theme button. There must be a **minimum gap of 10px** between the nearest edge of the theme button and the **right edge of the viewport**. Achieve this with layout/CSS (e.g. `max-width` / `min-width: 0` / truncation, reflow, or measured offsets) as appropriate without violating the no-overlap and minimum-gap rules.
+3. **Clearance and no overlap:** the theme button must **never overlap** the header technology text when that text becomes **longer** (including after adding “AI”) or when the **viewport width shrinks**. There must be a **minimum horizontal gap of 10px** between the header text (technology list) and the nearest edge of the theme button. There must be a **horizontal gap of exactly 10px** between the nearest edge of the theme button and the **right edge of the viewport**. Achieve this with layout/CSS (e.g. `max-width` / `min-width: 0` / truncation, reflow, or measured offsets) as appropriate without violating the no-overlap and minimum-gap rules.
 
 ## Scope
 
@@ -38,9 +38,9 @@ Implement the UI changes below (see GitHub issue #9):
 - UI stack: **Next.js (App Router), MUI**—per `docs/CODEBASE_MAP.md`; avoid heavy new dependencies unless necessary.
 - Keep the theme button clickable and the header readable at typical viewport widths.
 - Theme button positioning uses **`position: fixed` only** (no `absolute` / `sticky` for this button within this task).
-- **Preserve initial placement:** at **scroll position zero**, the button must **visually match** its placement in the **current** (pre-task) implementation—the same edge and window offsets the user saw before (sub-pixel differences from rounding/fonts only; no noticeable shift), **unless** that would break the **minimum spacing** rules above—in that case the **minima take precedence**.
+- **Preserve initial placement:** at **scroll position zero**, the button must **visually match** its placement in the **current** (pre-task) implementation—the same edge and window offsets the user saw before (sub-pixel differences from rounding/fonts only; no noticeable shift), **unless** that would break the **spacing** rules below — in that case the **the minimum requirements take precedence**.
 - **Do not** put **`<header>`** itself in `fixed`/`sticky` for this task: do not change the **header** container’s positioning model; **keep the current height** of the header strip.
-- **Minimum spacing (mandatory):** at least **10px** between the **header technology text** and the **theme button** (closest edges); **10px** between the **theme button** and the **right edge of the viewport** (closest edges). These minima apply at **all** viewport widths relevant to the app and whenever the header copy length changes.
+- **Spacing (mandatory):** at least **10px** between the **header technology text** and the **theme button** (closest edges); exactly **10px** between the **theme button** and the **right edge of the viewport** (closest edges). These apply at **all** viewport widths relevant to the app and whenever the header copy length changes.
 
 ## Relevant files or areas
 
@@ -77,7 +77,7 @@ Implement the UI changes below (see GitHub issue #9):
 
 - **`position: fixed` vs initial placement:** hard-coded `top`/`right` may diverge from in-flow button placement at different window widths; **post-layout measurement** or **per-breakpoint values** may be needed.
 - **`position: fixed`:** coherent **`top` / `right` (or `left`)** and **`z-index`** so the button does not sit under content or cover critical UI; verify overlap with header text on narrow widths / resize.
-- **Initial placement vs min gaps:** if matching the legacy pixel position would violate the **10px** text gap or **10px** right-edge gap, **prefer satisfying the minima** (document any trade-off in the PR).
+- **Initial placement vs min gaps:** if matching the legacy pixel position would violate the **minimum 10px** text gap or **exactly 10px** right-edge gap, **prefer satisfying the minimum gaps** (document any trade-off in the PR).
 - **Content overlap:** while scrolling, the button may overlap the task list—may need padding on the scrollable area without changing `<header>` height in flow.
 - **`overflow-x: hidden`** on the container in `page.tsx`—verify impact after implementation (for `fixed`, the viewport is usually the window, but ancestors with `transform` can create a new containing block; if an anomaly appears, note it in the PR).
 - **Tests:** keep or update `data-testid="header"` and `data-testid="theme-btn"` when the DOM changes.
