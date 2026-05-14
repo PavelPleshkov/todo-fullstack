@@ -13,6 +13,13 @@ body {
   overflow-x: hidden;
 }
 
+/* .theme-btn {
+  position: fixed !important;
+  right: 10px;
+  top: 10px;
+  height: 24px;
+} */
+
 .header-dark {
   background-color: #363636;
   color: var(--foreground);

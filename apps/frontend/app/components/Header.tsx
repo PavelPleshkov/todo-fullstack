@@ -11,6 +11,7 @@ export default function Header({ setTheme }: HeaderProps): React.ReactNode {
   const theme: string = useContext(ThemeContext);
   const className: string = "header-" + theme;
   const classNameBtn: string = "theme-btn-" + theme;
+  // const classNameBtn: string = "theme-btn theme-btn-" + theme;
 
   return (
     <header className={className} data-testid="header">
