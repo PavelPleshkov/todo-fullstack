@@ -23,6 +23,8 @@ describe("Header", () => {
     const header = screen.getByTestId("header");
 
     expect(header).toBeInTheDocument();
+    expect(header).toHaveClass("header");
+    expect(header).toHaveClass("header-dark");
   });
 
   it("title has correct text", async () => {
@@ -30,6 +32,18 @@ describe("Header", () => {
       exact: false,
     });
     expect(title).toBeTruthy();
+  });
+
+  it("technology list includes GraphQL and AI in order", () => {
+    const techText = document.querySelector(".header-title-text");
+    expect(techText).not.toBeNull();
+    expect(techText?.textContent ?? "").toMatch(/GraphQL,\s*AI/);
+  });
+
+  it("theme button has theme-btn and theme-specific classes", () => {
+    const themeBtn = screen.getByTestId("theme-btn");
+    expect(themeBtn).toHaveClass("theme-btn");
+    expect(themeBtn).toHaveClass("theme-btn-dark");
   });
 
   it("theme button changes theme", async () => {
@@ -43,11 +57,13 @@ describe("Header", () => {
     await userEvent.click(themeBtn);
 
     expect(header).toHaveClass("header-light");
+    expect(themeBtn).toHaveClass("theme-btn-light");
     expect(themeBtn).toHaveTextContent("Dark");
 
     await userEvent.click(themeBtn);
 
     expect(header).toHaveClass("header-dark");
+    expect(themeBtn).toHaveClass("theme-btn-dark");
     expect(themeBtn).toHaveTextContent("Light");
   });
 });
