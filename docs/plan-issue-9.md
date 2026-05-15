@@ -5,6 +5,8 @@
 
 Implement in `apps/frontend` a fixed theme button (`position: fixed`), add “AI” to the technology list after “GraphQL”, and enforce required spacing without text overlap.
 
+For post-implementation layout fixes and the final markup/CSS (after manual testing), see [As-built revisions (post–first implementation)](#as-built-revisions-post-first-implementation).
+
 ## Checklist
 
 - [ ] Update `Header.tsx`: “, AI” text, markup with `header-tech-text`, `className` `theme-btn` + `theme-btn-{theme}`
@@ -58,7 +60,7 @@ flowchart TB
 In `Header.tsx`, change the string to:
 
 ```tsx
-React, TS, Next.js, Nest.js, PostgreSQL, formik, yup, RTL, Jest, GraphQL, AI
+(React, TS, Next.js, Nest.js, PostgreSQL, formik, yup, RTL, Jest, GraphQL, AI);
 ```
 
 (comma and space — same as other list items).
@@ -90,15 +92,13 @@ In `Header.tsx`:
 
 ```css
 .header-dark {
-  ...
-  .theme-btn-dark {
+  ... .theme-btn-dark {
     background-color: var(--foreground);
     color: var(--background);
   }
 }
 .header-light {
-  ...
-  .theme-btn-light {
+  ... .theme-btn-light {
     background-color: var(--background);
     color: var(--foreground);
   }
@@ -131,16 +131,16 @@ In `Header.test.tsx`:
 
 ## Risks and mitigation
 
-| Risk | Mitigation |
-|------|------------|
-| Button out of flow → shorter header | `min-height` on `.header-*` |
+| Risk                                   | Mitigation                                             |
+| -------------------------------------- | ------------------------------------------------------ |
+| Button out of flow → shorter header    | `min-height` on `.header-*`                            |
 | Draft `height: 24px` too small for MUI | Remove or replace in `.theme-btn` after DevTools check |
-| Text overlap on narrow screens | `max-width` calc, `padding-right`, ellipsis/wrap |
-| Legacy position vs `right: 10px` | DoR spacing rules take priority |
-| MUI overrides `position` | `!important` on `.theme-btn` |
-| `transform` on ancestor | Check in DevTools; no transform in `page.tsx` |
-| Different “Light” / “Dark” widths | 80px buffer in calc |
-| Button over content while scrolling | Expected per issue; content padding only if needed |
+| Text overlap on narrow screens         | `max-width` calc, `padding-right`, ellipsis/wrap       |
+| Legacy position vs `right: 10px`       | DoR spacing rules take priority                        |
+| MUI overrides `position`               | `!important` on `.theme-btn`                           |
+| `transform` on ancestor                | Check in DevTools; no transform in `page.tsx`          |
+| Different “Light” / “Dark” widths      | 80px buffer in calc                                    |
+| Button over content while scrolling    | Expected per issue; content padding only if needed     |
 
 ## Validation (DoR acceptance criteria)
 
@@ -192,3 +192,53 @@ Before/after work: use approved GitHub MCP (`issue_read`) to verify issue #9 —
 1. CSS (`.theme-btn` + header constraints) + Header markup (`AI`, button classes).
 2. Tests.
 3. Brief PR note if initial placement shifts slightly to satisfy mandatory 10px gaps.
+
+## As-built revisions (post–first implementation)
+
+_The sections above describe the approved plan before Build. After the first implementation pass, manual testing on a narrow viewport showed overlap between the fixed theme button and the technology text, weak vertical alignment, and padding conflicts. The items below record the **final** approach. Requirements in [task-issue-9-dor.md](task-issue-9-dor.md) are unchanged; only implementation details differ from the original plan steps._
+
+### What stayed as planned
+
+- Theme button: `position: fixed`, `right: 10px`, `top: 10px`, `z-index: 1100` on `.theme-btn`; colors on `.theme-btn-dark` / `.theme-btn-light` only.
+- Text `GraphQL, AI` in the header technology list.
+- `<header>` remains in normal document flow (not `fixed` / `sticky`).
+- `page.tsx` unchanged.
+- `data-testid="header"` and `data-testid="theme-btn"` preserved.
+
+### Markup and class names (differs from original plan)
+
+| Original plan                                         | Final implementation                                                                                          |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| MUI `Grid` with `padding` / `space-between`           | `div` with `className="header-inner"`                                                                         |
+| `.header-tech-text`                                   | `.header-title-text` inside `.header-title-wrapper`                                                           |
+| Theme layout only on `.header-dark` / `.header-light` | Shared **`.header`** for layout; **`.header-dark` / `.header-light`** for colors and button theme styles only |
+| —                                                     | `<header className="header header-{theme}">`                                                                  |
+| —                                                     | Structure: `header-title` → `header-title-wrapper` → `header-title-icon` + `header-title-text`                |
+
+**Icon + text:** `.header-title-wrapper` uses `display: flex`, `flex-wrap: nowrap`, and `gap: 16px` so the star icon stays at the start of the line and the technology text wraps **beside** the icon, not on a new row under it.
+
+**No spacer element** in the DOM (explicitly rejected during review); space for the fixed button is reserved with CSS padding only.
+
+### CSS changes vs original plan
+
+| Original plan                                    | Final implementation                                                                                                                                                              |
+| ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `max-width: calc(100vw - 80px - 20px)` on text   | `max-width: 100%` inside a flex chain (`min-width: 0` on `.header-inner`, `.header-title`, `.header-title-text`)                                                                  |
+| `padding-right: calc(10px + 80px)`               | `--header-btn-zone: 90px` on `.header`; `padding-right: calc(var(--header-padding) + var(--header-btn-zone))` on `.header-inner` (100px total right inset with 10px base padding) |
+| `min-height` on `.header-dark` / `.header-light` | `min-height: 56px` on **`.header`**                                                                                                                                               |
+| Padding via MUI `Grid` `padding="10px"`          | Single source: `.header-inner` padding in CSS (`--header-padding: 10px`) — avoids MUI overriding `padding-right`                                                                  |
+
+### Tests
+
+- `Header.test.tsx`: asserts `header` + `header-dark`, `GraphQL, AI` order via `.header-title-text`, `theme-btn` classes, theme toggle.
+- No `getComputedStyle(...).position === 'fixed'` in Jest (jsdom does not reliably apply global CSS); fixed behavior verified manually (DoR AC 1, 5).
+
+### Validation notes
+
+- **Passed (feature scope):** `yarn test app/components/Header.test.tsx` (5/5), ESLint on touched TS files, `yarn build` in `apps/frontend`.
+- **Understood failures (out of scope #9):** full `yarn test` (Apollo provider missing in several suites), full `yarn lint` (`Tasks.tsx` `setState`-in-effect).
+- **Manual:** scroll keeps button fixed; theme toggle; narrow viewport without text/button overlap; ≥10px text↔button and 10px button↔viewport right edge per DoR; layout acceptable after `--header-btn-zone: 90px`.
+
+### PR / review hint
+
+If the PR description references this plan, link this section for reviewers so they do not follow superseded steps (e.g. `header-tech-text`, `80px` zone, `calc(100vw …)`).
