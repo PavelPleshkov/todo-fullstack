@@ -57,11 +57,13 @@ describe("Header", () => {
     await userEvent.click(themeBtn);
 
     expect(header).toHaveClass("header-light");
+    expect(themeBtn).toHaveClass("theme-btn-light");
     expect(themeBtn).toHaveTextContent("Dark");
 
     await userEvent.click(themeBtn);
 
     expect(header).toHaveClass("header-dark");
+    expect(themeBtn).toHaveClass("theme-btn-dark");
     expect(themeBtn).toHaveTextContent("Light");
   });
 });
