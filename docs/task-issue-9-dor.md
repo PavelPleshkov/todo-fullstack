@@ -38,7 +38,7 @@ Implement the UI changes below (see GitHub issue #9):
 - UI stack: **Next.js (App Router), MUI**—per `docs/CODEBASE_MAP.md`; avoid heavy new dependencies unless necessary.
 - Keep the theme button clickable and the header readable at typical viewport widths.
 - Theme button positioning uses **`position: fixed` only** (no `absolute` / `sticky` for this button within this task).
-- **Preserve initial placement:** at **scroll position zero**, the button must **visually match** its placement in the **current** (pre-task) implementation—the same edge and window offsets the user saw before (sub-pixel differences from rounding/fonts only; no noticeable shift), **unless** that would break the **spacing** rules below — in that case the **the minimum requirements take precedence**.
+- **Preserve initial placement:** at **scroll position zero**, the button must **visually match** its placement in the **current** (pre-task) implementation—the same edge and window offsets the user saw before (sub-pixel differences from rounding/fonts only; no noticeable shift), **unless** that would break the **spacing** rules below — in that case the **minimum requirements take precedence**.
 - **Do not** put **`<header>`** itself in `fixed`/`sticky` for this task: do not change the **header** container’s positioning model; **keep the current height** of the header strip.
 - **Spacing (mandatory):** at least **10px** between the **header technology text** and the **theme button** (closest edges); exactly **10px** between the **theme button** and the **right edge of the viewport** (closest edges). These apply at **all** viewport widths relevant to the app and whenever the header copy length changes.
 
