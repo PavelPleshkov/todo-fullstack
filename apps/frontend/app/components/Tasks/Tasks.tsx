@@ -16,9 +16,9 @@ export default function Tasks() {
   // const [sortOrder, setSortOrder] = useState<string>("asc");
   const [sortDirectionActive, setSortDirectionActive] = useState<
     "asc" | "desc"
-  >("asc");
+  >("desc");
   const [sortDirectionBin, setSortDirectionBin] = useState<"asc" | "desc">(
-    "asc",
+    "desc",
   );
   const [bin, setBin] = useState<TaskType[]>([]);
   const [isBin, setIsBin] = useState<boolean>(false);
