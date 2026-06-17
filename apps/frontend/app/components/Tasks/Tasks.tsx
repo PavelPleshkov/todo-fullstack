@@ -2,14 +2,23 @@
 
 import { useMutation, useQuery } from "@apollo/client/react";
 import { Grid } from "@mui/material";
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import AddTask from "./AddTask";
-import Task, { Task as TaskType } from "./Task";
+// import Task, { Task as TaskType } from "./Task";
+import { Task as TaskType } from "./Task";
 import {
   ACTIVE_TASKS_QUERY,
   BIN_TASKS_QUERY,
   UPDATE_TASK_MUTATION,
 } from "@/app/lib/graphql/operations";
+
+const Loading = () => {
+  return (
+    <div style={{ color: "#ffffff", padding: "10px 20px" }}>Loading...</div>
+  );
+};
+
+const Task = lazy(() => import("./Task"));
 
 export default function Tasks() {
   const [tasks, setTasks] = useState<TaskType[]>([]);
@@ -174,41 +183,43 @@ export default function Tasks() {
         <h1 style={{ padding: "10px 20px" }}>
           {!isBin ? "Tasks" : displayBin.length ? "Bin" : "Bin is empty"}
         </h1>
-        <ul>
-          {!isBin
-            ? displayTasks.map((task: TaskType) => {
-                return (
-                  <Task
-                    task={task}
-                    tasks={displayTasks}
-                    setTasks={setTasks}
-                    toggleTask={() => toggleTask(task.id)}
-                    key={task.id}
-                    bin={displayBin}
-                    setBin={setBin}
-                    isBin={isBin}
-                    refetchActive={refetchActive}
-                    refetchBin={refetchBin}
-                  />
-                );
-              })
-            : displayBin.map((task: TaskType) => {
-                return (
-                  <Task
-                    task={task}
-                    tasks={displayBin}
-                    setTasks={setTasks}
-                    // toggleTask={() => toggleTask(task.id)}
-                    key={task.id}
-                    bin={displayBin}
-                    setBin={setBin}
-                    isBin={isBin}
-                    refetchActive={refetchActive}
-                    refetchBin={refetchBin}
-                  />
-                );
-              })}
-        </ul>
+        <Suspense fallback={<Loading />}>
+          <ul>
+            {!isBin
+              ? displayTasks.map((task: TaskType) => {
+                  return (
+                    <Task
+                      task={task}
+                      tasks={displayTasks}
+                      setTasks={setTasks}
+                      toggleTask={() => toggleTask(task.id)}
+                      key={task.id}
+                      bin={displayBin}
+                      setBin={setBin}
+                      isBin={isBin}
+                      refetchActive={refetchActive}
+                      refetchBin={refetchBin}
+                    />
+                  );
+                })
+              : displayBin.map((task: TaskType) => {
+                  return (
+                    <Task
+                      task={task}
+                      tasks={displayBin}
+                      setTasks={setTasks}
+                      // toggleTask={() => toggleTask(task.id)}
+                      key={task.id}
+                      bin={displayBin}
+                      setBin={setBin}
+                      isBin={isBin}
+                      refetchActive={refetchActive}
+                      refetchBin={refetchBin}
+                    />
+                  );
+                })}
+          </ul>
+        </Suspense>
       </Grid>
     </Grid>
   );

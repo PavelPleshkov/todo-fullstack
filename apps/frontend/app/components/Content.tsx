@@ -13,12 +13,8 @@ export default function Content(): React.ReactNode {
   return (
     <div className={"content " + className} data-testid="content">
       <Grid container direction={"column"} spacing={2}>
-        <Grid size={12}>
-          <Stopwatch />
-        </Grid>
-        <Grid size={12}>
-          <Form />
-        </Grid>
+        <Stopwatch />
+        <Form />
         <Tasks />
       </Grid>
     </div>

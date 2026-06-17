@@ -154,7 +154,7 @@ export default function Stopwatch() {
   }, []);
 
   return (
-    <div data-testid="stopwatch">
+    <Grid size={12} data-testid="stopwatch">
       <div style={{ padding: "10px" }}>
         Stopwatch: {"0" + hours.toFixed(0)}
         {" : "}
@@ -173,6 +173,6 @@ export default function Stopwatch() {
         setIsRunning={setIsRunning}
         handleResetBtn={handleResetBtn}
       />
-    </div>
+    </Grid>
   );
 }

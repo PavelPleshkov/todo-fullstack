@@ -48,52 +48,58 @@ export default function Form() {
   };
 
   return (
-    <form data-testid="form" onSubmit={formik.handleSubmit}>
-      <Grid
-        container
-        spacing={2}
-        direction={"column"}
-        size={12}
-        sx={{ padding: "10px" }}
-      >
-        <Grid size={6}>
-          <TextField
-            data-testid="name-input"
-            label="Name"
-            name="name"
-            value={formik.values.name}
-            onBlur={formik.handleBlur}
-            onChange={formik.handleChange}
-            error={formik.touched.name && Boolean(formik.errors.name)}
-            helperText={formik.touched.name && formik.errors.name}
-            type="text"
-          />
-        </Grid>
-        <Grid size={6}>
-          <TextField
-            data-testid="password-input"
-            label="Password"
-            name="password"
-            value={formik.values.password}
-            onBlur={formik.handleBlur}
-            onChange={formik.handleChange}
-            error={formik.touched.password && Boolean(formik.errors.password)}
-            helperText={formik.touched.password && formik.errors.password}
-            type="password"
-          />
-        </Grid>
-        <Grid size={12}>
-          <div data-testid="password-validation">
-            {isValid(formik.values.password)
-              ? "You can sign up with this password"
-              : "You can't sign up with this password"}
-          </div>
+    <Grid size={12}>
+      <form data-testid="form" onSubmit={formik.handleSubmit}>
+        <Grid
+          container
+          spacing={2}
+          direction={"column"}
+          size={12}
+          sx={{ padding: "10px" }}
+        >
+          <Grid size={6}>
+            <TextField
+              data-testid="name-input"
+              label="Name"
+              name="name"
+              value={formik.values.name}
+              onBlur={formik.handleBlur}
+              onChange={formik.handleChange}
+              error={formik.touched.name && Boolean(formik.errors.name)}
+              helperText={formik.touched.name && formik.errors.name}
+              type="text"
+            />
+          </Grid>
+          <Grid size={6}>
+            <TextField
+              data-testid="password-input"
+              label="Password"
+              name="password"
+              value={formik.values.password}
+              onBlur={formik.handleBlur}
+              onChange={formik.handleChange}
+              error={formik.touched.password && Boolean(formik.errors.password)}
+              helperText={formik.touched.password && formik.errors.password}
+              type="password"
+            />
+          </Grid>
+          <Grid size={12}>
+            <div data-testid="password-validation">
+              {isValid(formik.values.password)
+                ? "You can sign up with this password"
+                : "You can't sign up with this password"}
+            </div>
 
-          <Button data-testid="submit-button" type="submit" variant="contained">
-            Submit
-          </Button>
+            <Button
+              data-testid="submit-button"
+              type="submit"
+              variant="contained"
+            >
+              Submit
+            </Button>
+          </Grid>
         </Grid>
-      </Grid>
-    </form>
+      </form>
+    </Grid>
   );
 }
