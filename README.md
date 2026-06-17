@@ -6,8 +6,8 @@ Fullstack monorepo: **Next.js frontend** + **NestJS GraphQL backend** + **Postgr
 
 ### Apps
 
-- **`apps/frontend`** (workspace: `frontend`) — Next.js UI + Apollo Client
-  - URL: `http://localhost:3000`
+- **`apps/frontend`** (workspace: `frontend`) — Next.js UI + Apollo Client; tab routes `/form`, `/stopwatch`, `/tasks`
+  - URL: `http://localhost:3000` (`/` redirects to `/tasks`)
 - **`apps/backend`** (workspace: `backend`) — NestJS + Apollo GraphQL + PostgreSQL
   - GraphQL endpoint: `http://localhost:3001/graphql` (same host/port as HTTP; path `/graphql`)
 - **`apps/docs`** (workspace: `docs`) — optional Next.js documentation site

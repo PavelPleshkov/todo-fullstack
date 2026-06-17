@@ -4,13 +4,15 @@
 
 **todo-fullstack** is a Yarn workspaces + Turborepo monorepo: a **Next.js** frontend with **Apollo Client** talks to a **NestJS** backend that exposes **GraphQL (Apollo Server)** and persists tasks in **PostgreSQL** via the `pg` driver. An optional **Next.js** docs app and shared **`packages/*`** complete the layout.
 
+The main UI uses **Next.js App Router** with tab-based routes for **Form**, **Stopwatch**, and **Tasks** under a shared client shell (header, theme, navigation).
+
 ## Layout
 
 ### Apps (`apps/`)
 
 | Path            | Workspace name | Role                        | Tech notes                                                                                                 |
 | --------------- | -------------- | --------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `apps/frontend` | `frontend`     | Main UI                     | Next.js App Router, MUI, Apollo Client, GraphQL Codegen                                                    |
+| `apps/frontend` | `frontend`     | Main UI                     | Next.js App Router, MUI, Apollo Client, GraphQL Codegen, tab routes `/form`, `/stopwatch`, `/tasks`        |
 | `apps/backend`  | `backend`      | API                         | NestJS, `@nestjs/graphql` + Apollo, `pg`                                                                   |
 | `apps/docs`     | `docs`         | Optional documentation site | Next.js, uses `@repo/ui`; run separately with `yarn dev:docs` in `apps/docs` (not part of root `yarn dev`) |
 
@@ -29,6 +31,86 @@
 | `docs/CODEBASE_MAP.md` | This file — canonical high-level architecture map            |
 | `turbo.json`           | Turborepo task graph (`dev`, `build`, `lint`, `check-types`) |
 
+## Frontend (`apps/frontend`)
+
+### App Router structure
+
+Route group `(main)` organizes the shell and tab pages; the folder name does **not** appear in URLs.
+
+```
+apps/frontend/app/
+├── layout.tsx                 # Root layout (Server): fonts, metadata, ApolloWrapper
+├── globals.css                # Global + theme/header/tab/content styles
+├── ThemeContext.tsx           # React context for light/dark theme
+├── ApolloWrapper.tsx          # Client ApolloProvider + HttpLink
+│
+├── (main)/                    # Route group — URLs stay /form, /tasks, etc.
+│   ├── layout.tsx             # Client shell: ThemeContext, Header, TabNav, content area
+│   ├── layout.test.tsx        # Tests for main shell (theme toggle, containers)
+│   ├── page.tsx               # GET / → redirect to /tasks
+│   ├── form/page.tsx          # GET /form → <Form />
+│   ├── stopwatch/page.tsx     # GET /stopwatch → <Stopwatch />
+│   └── tasks/page.tsx         # GET /tasks → <Tasks />
+│
+├── components/
+│   ├── Header.tsx             # App title + theme toggle
+│   ├── TabNav.tsx             # MUI Tabs + next/link; active tab via usePathname()
+│   ├── TabNav.test.tsx
+│   ├── Form/Form.tsx          # Formik + yup demo form ("use client")
+│   ├── Stopwatch/Stopwatch.tsx
+│   └── Tasks/Tasks.tsx        # Apollo queries/mutations for tasks
+│
+└── lib/graphql/
+    ├── operations.ts          # GraphQL documents for codegen
+    └── generated/             # Codegen output (do not hand-edit)
+```
+
+### Routes
+
+| URL            | File                              | Renders    | Notes                                      |
+| -------------- | --------------------------------- | ---------- | ------------------------------------------ |
+| `/`            | `app/(main)/page.tsx`             | redirect   | `redirect("/tasks")` — default tab         |
+| `/form`        | `app/(main)/form/page.tsx`        | `Form`     | Server page; `metadata.title`: "Form"      |
+| `/stopwatch`   | `app/(main)/stopwatch/page.tsx`   | `Stopwatch`| Server page; `metadata.title`: "Stopwatch" |
+| `/tasks`       | `app/(main)/tasks/page.tsx`       | `Tasks`    | Server page; GraphQL via Apollo            |
+
+### Layout hierarchy
+
+```
+RootLayout (app/layout.tsx, Server)
+  └── ApolloWrapper
+        └── MainLayout (app/(main)/layout.tsx, Client)
+              ├── Header
+              ├── TabNav
+              └── {children}  ← active route page (Form / Stopwatch / Tasks)
+```
+
+- **Root layout** stays a Server Component: `metadata`, Google fonts, `ApolloWrapper`.
+- **Main layout** is a Client Component (`"use client"`): `useState` for theme, `ThemeContext`, shared chrome.
+- **Route pages** are thin Server Components that export `metadata` and render one feature component.
+
+### Navigation
+
+- `TabNav.tsx` uses `next/link` with MUI `Tab` (`component={Link}`) and `usePathname()` for the active tab.
+- Browser back/forward and shareable URLs work per tab.
+- Switching tabs **unmounts** the previous page component (Stopwatch timer and Form fields reset; Apollo task cache persists).
+
+### Removed / superseded (App Router migration)
+
+| Former path                     | Replaced by                                      |
+| ------------------------------- | ------------------------------------------------ |
+| `app/page.tsx` (single home)    | `app/(main)/layout.tsx` + `app/(main)/page.tsx`  |
+| `app/components/Content.tsx`    | Per-route pages + `{children}` in main layout    |
+| `app/page.test.tsx`             | `app/(main)/layout.test.tsx`                     |
+| `app/components/Content.test.tsx` | `app/components/TabNav.test.tsx`               |
+
+### Frontend tests
+
+- Jest mocks `next/navigation` in `apps/frontend/jest.setup.ts` (`usePathname`, `useRouter`, `redirect`).
+- Shell tests: `app/(main)/layout.test.tsx`.
+- Tab tests: `app/components/TabNav.test.tsx`.
+- Feature tests remain next to components (`Form.test.tsx`, `Tasks.test.tsx`, etc.).
+
 ## Runtime
 
 ### From repository root
@@ -42,6 +124,7 @@
 | Service      | URL / port                       | Source                                                                                        |
 | ------------ | -------------------------------- | --------------------------------------------------------------------------------------------- |
 | Frontend     | `http://localhost:3000`          | Root README; `apps/frontend` script `next dev -p 3000`                                        |
+| Frontend tabs| `/form`, `/stopwatch`, `/tasks`  | `app/(main)/*/page.tsx`; `/` redirects to `/tasks`                                            |
 | Backend HTTP | `http://localhost:3001` (listen) | `apps/backend/src/main.ts` — `process.env.PORT ?? 3001`                                       |
 | GraphQL HTTP | `http://localhost:3001/graphql`  | Root README; Apollo `HttpLink` default in `apps/frontend/app/ApolloWrapper.tsx`               |
 | Docs app     | `http://localhost:3002`          | Not started by root `yarn dev`; run `yarn dev:docs` from `apps/docs` (`next dev --port 3002`) |
@@ -77,7 +160,8 @@
 ### Frontend GraphQL client
 
 - **Apollo provider:** `apps/frontend/app/ApolloWrapper.tsx` (client-side `ApolloProvider` + `HttpLink`).
-- **Root layout:** `apps/frontend/app/layout.tsx` wraps children with `ApolloWrapper`.
+- **Root layout:** `apps/frontend/app/layout.tsx` wraps all routes with `ApolloWrapper`.
+- **Primary consumer:** `apps/frontend/app/components/Tasks/Tasks.tsx` on route `/tasks`.
 - **Operations:** `apps/frontend/app/lib/graphql/operations.ts` (documents for codegen).
 - **Codegen output:** `apps/frontend/app/lib/graphql/generated/` (preset: client); config `apps/frontend/codegen.yml` points **schema** to `../backend/src/schema.gql`.
 - **Regenerate types:** from `apps/frontend`: `yarn codegen` (see `apps/frontend/package.json`).
@@ -114,6 +198,7 @@
 - **Package manager:** Yarn **1.x**, `packageManager: yarn@1.22.22` (root `package.json`).
 - **Node:** `>= 18` (root `engines`).
 - **Monorepo:** `workspaces.packages`: `apps/*`, `packages/*`; `nohoist` for Nest/Apollo under backend (see root `package.json`).
-- **Frontend imports:** path alias `@/*` → `apps/frontend/*` (`apps/frontend/tsconfig.json`).
+- **Frontend imports:** path alias `@/*` → `apps/frontend/*` (`apps/frontend/tsconfig.json`). Example: `@/app/components/Tasks/Tasks`.
+- **App Router:** add new top-level tabs as `app/(main)/<name>/page.tsx` and register the route in `TabNav.tsx` `TABS` array.
 - **Schema changes:** prefer code-first Nest decorators → regen `schema.gql` → run frontend `yarn codegen` so `generated/` stays in sync.
 - **Cartograph skill location:** `.cursor/skills/Cartograph/` — prefer filename **`SKILL.md`** for Cursor agent skills compatibility (rename from `Skill.md` if needed).

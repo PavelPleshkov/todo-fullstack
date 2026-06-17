@@ -79,6 +79,7 @@ body {
     color: var(--background);
   }
 }
+
 .header-light {
   background-color: var(--foreground);
   color: var(--background);
@@ -105,6 +106,7 @@ body {
     background-color: var(--background);
     color: var(--foreground);
   }
+
   .add-task-dark {
     background-color: #696969;
   }
@@ -160,4 +162,42 @@ body {
 
 .task-input:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.tab-nav-dark {
+  background-color: #363636;
+  color: var(--foreground);
+}
+
+.tab-nav-dark .MuiTab-root {
+  color: rgba(243, 242, 242, 0.7);
+}
+
+.tab-nav-dark .Mui-selected {
+  color: var(--foreground);
+}
+
+.tab-nav-dark .MuiTabs-indicator {
+  background-color: var(--foreground) !important;
+  /* height: 3px; */
+  border-radius: 2px 2px 0 0;
+}
+
+.tab-nav-light {
+  background-color: var(--foreground);
+  color: var(--background);
+}
+
+.tab-nav-light .MuiTab-root {
+  color: rgba(54, 54, 54, 0.7);
+}
+
+.tab-nav-light .Mui-selected {
+  color: var(--background);
+}
+
+.tab-nav-light .MuiTabs-indicator {
+  background-color: var(--background) !important;
+  /* height: 3px; */
+  border-radius: 2px 2px 0 0;
 }

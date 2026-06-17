@@ -1,0 +1,46 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Tab, Tabs } from "@mui/material";
+import { useContext } from "react";
+import { ThemeContext } from "../ThemeContext";
+
+const TABS = [
+  { label: "Form", href: "/form" },
+  { label: "Stopwatch", href: "/stopwatch" },
+  { label: "Tasks", href: "/tasks" },
+] as const;
+
+export default function TabNav() {
+  const pathname = usePathname();
+  const theme = useContext(ThemeContext);
+  const activeIndex = TABS.findIndex((tab) => pathname === tab.href);
+
+  return (
+    <nav
+      className={`tab-nav tab-nav-${theme}`}
+      data-testid="tab-nav"
+      aria-label="Main navigation"
+    >
+      <Tabs
+        value={activeIndex === -1 ? false : activeIndex}
+        // variant="fullWidth"
+        // indicatorColor="primary"
+        textColor="inherit"
+        centered
+      >
+        {TABS.map((tab, index) => (
+          <Tab
+            key={tab.href}
+            label={tab.label}
+            value={index}
+            component={Link}
+            href={tab.href}
+            data-testid={`tab-${tab.href.slice(1)}`}
+          />
+        ))}
+      </Tabs>
+    </nav>
+  );
+}

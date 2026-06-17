@@ -1,12 +1,16 @@
 "use client";
 
 import { Grid } from "@mui/material";
-import Content from "./components/Content";
-import Header from "./components/Header";
 import { useState } from "react";
-import { ThemeContext } from "./ThemeContext";
+import Header from "../components/Header";
+import TabNav from "../components//TabNav";
+import { ThemeContext } from "../ThemeContext";
 
-export default function Home() {
+export default function MainLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [theme, setTheme] = useState("dark");
 
   return (
@@ -17,19 +21,28 @@ export default function Home() {
       >
         <Grid
           container
-          direction={"column"}
+          direction="column"
           size={12}
-          gridTemplateRows={"auto"}
+          // gridTemplateRows={"auto"}
           sx={{
             backgroundColor: theme === "dark" ? "#363636" : "#f3f2f2cd",
             height: "100%",
           }}
         >
           <Grid size={12}>
-            <Header setTheme={setTheme}></Header>
+            <Header setTheme={setTheme} />
           </Grid>
+
           <Grid size={12}>
-            <Content></Content>
+            <TabNav />
+          </Grid>
+
+          <Grid size={12}>
+            <div className={`content content-${theme}`} data-testid="content">
+              <Grid container direction={"column"} spacing={2}>
+                {children}
+              </Grid>
+            </div>
           </Grid>
         </Grid>
       </div>
