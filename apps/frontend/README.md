@@ -1,38 +1,64 @@
-# Frontend Todo-fullstack application
+# Frontend (`apps/frontend`)
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Main **Next.js App Router** UI for todo-fullstack: Apollo Client, MUI, GraphQL Codegen.
 
-## Getting Started
+**Monorepo map:** [docs/CODEBASE_MAP.md](../../docs/CODEBASE_MAP.md) — routes, layout hierarchy, GraphQL paths, dev commands.
 
-First, run the development server:
+## Development
+
+From the **repository root** (starts frontend + backend):
 
 ```bash
-npm run dev
-# or
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Frontend only, from this directory:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+yarn dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Open [http://localhost:3000](http://localhost:3000). Root `/` redirects to **`/tasks`**.
 
-## Learn More
+| Route        | Feature    |
+| ------------ | ---------- |
+| `/form`      | Form demo  |
+| `/stopwatch` | Stopwatch  |
+| `/tasks`     | Task list  |
 
-To learn more about Next.js, take a look at the following resources:
+GraphQL defaults to `http://localhost:3001/graphql`. Override with **`NEXT_PUBLIC_GRAPHQL_URL`** (see `app/ApolloWrapper.tsx`).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## App structure (summary)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+app/
+├── layout.tsx              # Root: Apollo, fonts, metadata
+├── (main)/
+│   ├── layout.tsx          # Shell: Header, TabNav, theme, content wrapper
+│   ├── page.tsx            # / → redirect /tasks
+│   ├── form/page.tsx
+│   ├── stopwatch/page.tsx
+│   └── tasks/page.tsx
+└── components/             # Header, TabNav, Form, Stopwatch, Tasks
+```
 
-## Deploy on Vercel
+Tab navigation: `app/components/TabNav.tsx` (`next/link` + `usePathname`).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Scripts
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Command        | Purpose                          |
+| -------------- | -------------------------------- |
+| `yarn dev`     | Next.js dev server (port 3000)   |
+| `yarn build`   | Production build                 |
+| `yarn lint`    | ESLint                           |
+| `yarn test`    | Jest + Testing Library           |
+| `yarn codegen` | Regenerate GraphQL types from backend schema |
+
+After backend **GraphQL schema** changes: `yarn codegen` (schema path in `codegen.yml` → `../backend/src/schema.gql`).
+
+## Tests
+
+- `jest.setup.ts` mocks `next/navigation` for route-aware components.
+- Shell: `app/(main)/layout.test.tsx`
+- Tabs: `app/components/TabNav.test.tsx`
+- Features: `components/*/*.test.tsx`

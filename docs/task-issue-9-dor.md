@@ -50,7 +50,7 @@ Implement the UI changes below (see GitHub issue #9):
 | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `apps/frontend/app/components/Header.tsx`      | **GraphQL** string, theme button (`data-testid="theme-btn"`)—main issue work; optional logic to measure/sync coordinates for initial placement.                   |
 | `apps/frontend/app/globals.css`                | `.header-dark` / `.header-light`, `.theme-btn-dark` / `.theme-btn-light`—`position: fixed`, `z-index`, **offset values matching the button’s original position**. |
-| `apps/frontend/app/page.tsx`                   | Header + Content column—padding on scrollable area if the `fixed` button overlaps content; no header height regression.                                           |
+| `apps/frontend/app/(main)/layout.tsx`          | App shell (Header + tab nav + content column)—padding on scrollable area if the `fixed` button overlaps content; no header height regression. *(Was `app/page.tsx` + `Content.tsx` before App Router tabs.)* |
 | `apps/frontend/app/components/Header.test.tsx` | Update expectations when DOM/text/behaviour changes; if tests assert position, account for `fixed` and initial alignment.                                         |
 | `apps/frontend/app/ThemeContext.tsx`           | Usually unchanged; used by `Header`                                                                                                                               |
 

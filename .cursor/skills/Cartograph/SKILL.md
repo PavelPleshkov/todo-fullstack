@@ -21,7 +21,7 @@ Produce or update a single Markdown file at **docs/CODEBASE_MAP.md** that helps 
 
 1. Read root **README.md**, **package.json**, **turbo.json**, and each **apps/\*/README.md** (and **packages/** manifests if present).
 2. List **apps** and **packages**: name, role, main tech, dev URL or port if documented.
-3. Identify **entry points**: e.g. Next.js app router roots, Nest `main.ts`, GraphQL module/resolvers location, DB/migrations if any.
+3. Identify **entry points**: e.g. Next.js App Router roots (`app/layout.tsx`, route group `app/(main)/`, tab pages), Nest `main.ts`, GraphQL module/resolvers location, DB/migrations if any.
 4. Describe **key relationships**: frontend → GraphQL endpoint; backend → PostgreSQL; shared UI/types packages.
 5. Document **commands** from root: `yarn dev`, `yarn lint`, `yarn check-types`, `yarn build` (and app-specific scripts if critical).
 6. Write **docs/CODEBASE_MAP.md** using the template below (fill with real paths from this repo).

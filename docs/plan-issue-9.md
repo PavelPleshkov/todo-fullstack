@@ -20,8 +20,8 @@ For post-implementation layout fixes and the final markup/CSS (after manual test
 
 - [`apps/frontend/app/components/Header.tsx`](../apps/frontend/app/components/Header.tsx): theme button inside MUI `Grid` with `justifyContent="space-between"` — in normal document flow; technology string ends at `GraphQL` (no `AI`). Commented `className` variant: `"theme-btn theme-btn-" + theme`.
 - [`apps/frontend/app/globals.css`](../apps/frontend/app/globals.css): `.header-*` / `.theme-btn-*` styles are colors only; commented `.theme-btn` block with `position: fixed`, `right: 10px`, `top: 10px`.
-- [`apps/frontend/app/page.tsx`](../apps/frontend/app/page.tsx): `<header>` in a Grid column, `overflowX: hidden` on the container — usually fine for `fixed`, but verify after changes.
-- Tests: [`Header.test.tsx`](../apps/frontend/app/components/Header.test.tsx) cover render, text, and theme toggle; [`page.test.tsx`](../apps/frontend/app/page.test.tsx) clicks `theme-btn` — keep `data-testid` attributes.
+- [`apps/frontend/app/(main)/layout.tsx`](../apps/frontend/app/(main)/layout.tsx): app shell with `<header>` in a Grid column, `overflowX: hidden` on the container — usually fine for `fixed`, but verify after changes. *(Formerly `app/page.tsx` before App Router tab migration.)*
+- Tests: [`Header.test.tsx`](../apps/frontend/app/components/Header.test.tsx) cover render, text, and theme toggle; [`layout.test.tsx`](../apps/frontend/app/(main)/layout.test.tsx) clicks `theme-btn` — keep `data-testid` attributes. *(Formerly `page.test.tsx`.)*
 
 ```mermaid
 flowchart TB
@@ -127,7 +127,7 @@ In `Header.test.tsx`:
 - Keep `data-testid="header"`, `data-testid="theme-btn"`, theme toggle behavior.
 - Optional: button has class `theme-btn` and `getComputedStyle(themeBtn).position === 'fixed'`.
 
-`page.test.tsx` — unchanged if `theme-btn` stays clickable.
+`layout.test.tsx` — unchanged if `theme-btn` stays clickable. *(Formerly `page.test.tsx`; shell now lives in `app/(main)/layout.tsx`.)*
 
 ## Risks and mitigation
 
