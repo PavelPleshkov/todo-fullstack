@@ -3,86 +3,88 @@
 // import { useMutation, useQuery } from "@apollo/client/react";
 import { useQuery } from "@apollo/client/react";
 import { Grid } from "@mui/material";
-// import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import {
   lazy,
   Suspense,
   useCallback,
-  // useContext,
   useDeferredValue,
   useMemo,
   useState,
 } from "react";
 import AddTask from "./AddTask";
-// import Task, { Task as TaskType } from "./Task";
-import { Task as TaskType } from "./Task";
+import Search from "./Search";
+import type { Task as TaskType } from "./Task";
 import {
   ACTIVE_TASKS_QUERY,
   BIN_TASKS_QUERY,
-  // UPDATE_TASK_MUTATION,
 } from "@/app/lib/graphql/operations";
-import { ErrorBoundary } from "next/dist/client/components/error-boundary";
-
-// import { ThemeContext } from "@/app/ThemeContext";
-// import Btn from "./Btn";
-import Search from "./Search";
+import { ErrorBoundary, getErrorMessage } from "react-error-boundary";
+import type { FallbackProps } from "react-error-boundary";
 
 const Loading = () => {
   return <div style={{ padding: "10px 20px" }}>Loading...</div>;
 };
 
-const LoadingError = () => {
+// const RenderError = () => {
+//   return <div style={{ color: "red", padding: "10px 20px" }}>Render error</div>;
+// };
+const RenderError = ({ error, resetErrorBoundary }: FallbackProps) => {
   return (
-    <div style={{ color: "red", padding: "10px 20px" }}>Loading error</div>
+    <div style={{ color: "red", padding: "10px 20px" }} role="alert">
+      <div>Render error</div>
+      <pre style={{ fontSize: 14, margin: "8px 0" }}>
+        {getErrorMessage(error)}
+      </pre>
+      <button
+        type="button"
+        style={{
+          padding: "10px 20px",
+          border: "1px solid red",
+          borderRadius: "5px",
+          cursor: "pointer",
+        }}
+        onClick={resetErrorBoundary}
+      >
+        Try again
+      </button>
+    </div>
   );
 };
 
 const EMPTY_TASKS: TaskType[] = [];
 
-// function wait(ms: number) {
-//   return new Promise((resolve) => setTimeout(resolve, ms));
-// }
-// const Task = lazy(() => wait(1000).then(() => import("./Task")));
 const Task = lazy(() => import("./Task"));
 
 export default function Tasks() {
-  // const theme: string = useContext(ThemeContext);
-
-  // const [tasks, setTasks] = useState<TaskType[]>([]);
-  // const [sortOrder, setSortOrder] = useState<string>("asc");
   const [sortDirectionActive, setSortDirectionActive] = useState<
     "asc" | "desc"
   >("desc");
   const [sortDirectionBin, setSortDirectionBin] = useState<"asc" | "desc">(
     "desc",
   );
-  // const [bin, setBin] = useState<TaskType[]>([]);
+
   const [isBin, setIsBin] = useState<boolean>(false);
 
-  // const { data: activeData, refetch: refetchActive } =
-  //   useQuery(ACTIVE_TASKS_QUERY);
-  const { data: activeData } = useQuery(ACTIVE_TASKS_QUERY);
-  // const tasks: TaskType[] = useMemo(
-  //   () => activeData?.activeTasks ?? [],
-  //   [activeData],
-  // );
-  // const tasks: TaskType[] = useMemo(
-  //   () => activeData?.activeTasks ?? EMPTY_TASKS,
-  //   [activeData],
-  // );
+  // const { data: activeData } = useQuery(ACTIVE_TASKS_QUERY);
+  const {
+    data: activeData,
+    loading: activeLoading,
+    error: activeError,
+    refetch: refetchActive,
+  } = useQuery(ACTIVE_TASKS_QUERY);
   const tasks: TaskType[] = activeData?.activeTasks ?? EMPTY_TASKS;
 
-  // const { data: binData, refetch: refetchBin } = useQuery(BIN_TASKS_QUERY, {
+  // const { data: binData } = useQuery(BIN_TASKS_QUERY, {
   //   skip: !isBin,
   // });
-  const { data: binData } = useQuery(BIN_TASKS_QUERY, {
+  const {
+    data: binData,
+    loading: binLoading,
+    error: binError,
+    refetch: refetchBin,
+  } = useQuery(BIN_TASKS_QUERY, {
     skip: !isBin,
   });
-  // const bin: TaskType[] = useMemo(() => binData?.binTasks ?? [], [binData]);
-  // const bin: TaskType[] = useMemo(
-  //   () => binData?.binTasks ?? EMPTY_TASKS,
-  //   [binData],
-  // );
   const bin: TaskType[] = binData?.binTasks ?? EMPTY_TASKS;
 
   // const [updateTaskMutation] = useMutation(UPDATE_TASK_MUTATION);
@@ -164,35 +166,6 @@ export default function Tasks() {
     deferredSearchValue,
   ]);
 
-  // const displayTasks: TaskType[] = useMemo(() => {
-  //   const sortedTasks: TaskType[] = sortTasksByDirection(
-  //     tasks,
-  //     sortDirectionActive,
-  //   );
-  //   const searchText: string = searchValue.trim().toLowerCase();
-
-  //   if (searchText) {
-  //     return sortedTasks.filter((task: TaskType) => {
-  //       return task.text.toLowerCase().includes(searchText);
-  //     });
-  //   }
-  //   return sortedTasks;
-  // }, [tasks, sortDirectionActive, searchValue]);
-
-  // const displayBin: TaskType[] = useMemo(() => {
-  //   const sortedBin: TaskType[] = sortTasksByDirection(bin, sortDirectionBin);
-  //   const searchText: string = searchValue.trim().toLowerCase();
-
-  //   if (searchText) {
-  //     return sortedBin.filter((task: TaskType) => {
-  //       return task.text.toLowerCase().includes(searchText);
-  //     });
-  //   }
-  //   return sortedBin;
-  // }, [bin, sortDirectionBin, searchValue]);
-
-  // const showedTasks: TaskType[] = !isBin ? displayTasks : displayBin;
-
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchValue(event.target.value);
   };
@@ -240,13 +213,23 @@ export default function Tasks() {
   //   }
   // };
 
+  const listLoading = isBin ? binLoading : activeLoading;
+  const listError = isBin ? binError : activeError;
+  const retryList = () => {
+    if (isBin) {
+      refetchBin();
+    } else {
+      refetchActive();
+    }
+  };
+
   return (
     <Grid
       container
       size={12}
       direction={"column"}
       spacing={2}
-      data-testid={!isBin ? "tasks" : "bin"}
+      data-testid={"tasks"}
     >
       <AddTask
         // tasks={tasks}
@@ -270,7 +253,7 @@ export default function Tasks() {
         sx={{ paddingBottom: "20px" }}
       >
         <h1 style={{ margin: "0 10px", padding: "10px 10px" }}>
-          {!isBin ? "Tasks" : bin.length ? "Bin" : "Bin is empty"}
+          {!isBin ? "Tasks" : "Bin"}
           {/* {!isBin ? "Tasks" : displayBin.length ? "Bin" : "Bin is empty"} */}
         </h1>
         <Grid
@@ -287,59 +270,43 @@ export default function Tasks() {
           }}
         >
           <Search
+            disabled={listLoading || (isBin ? bin : tasks).length === 0}
             searchValue={searchValue}
             handleSearch={handleSearch}
             clearSearch={clearSearch}
           />
         </Grid>
 
-        <ErrorBoundary errorComponent={() => <LoadingError />}>
-          <Suspense fallback={<Loading />}>
-            {showedTasks.length === 0 && deferredSearchValue.trim() !== "" ? (
-              <div style={{ padding: "10px 20px" }}>
-                No tasks found with {`"${deferredSearchValue}"`}
+        <ErrorBoundary FallbackComponent={RenderError} onReset={retryList}>
+          {listLoading ? (
+            <div style={{ padding: "10px 20px" }}>Loading tasks...</div>
+          ) : listError ? (
+            <div style={{ color: "red", padding: "10px 20px" }} role="alert">
+              <div>Failed to load tasks.</div>
+              <div style={{ fontSize: 12, margin: "8px 0" }}>
+                {listError.message}
               </div>
-            ) : (
-              <ul>
-                {showedTasks.map((task: TaskType) => {
-                  return <Task task={task} key={task.id} isBin={isBin} />;
-                })}
-                {/* {!isBin
-                ? displayTasks.map((task: TaskType) => {
-                    return (
-                      <Task
-                        task={task}
-                        // tasks={displayTasks}
-                        // setTasks={setTasks}
-                        // toggleTask={() => toggleTask(task.id)}
-                        key={task.id}
-                        // bin={displayBin}
-                        // setBin={setBin}
-                        isBin={isBin}
-                        // refetchActive={refetchActive}
-                        // refetchBin={refetchBin}
-                      />
-                    );
-                  })
-                : displayBin.map((task: TaskType) => {
-                    return (
-                      <Task
-                        task={task}
-                        // tasks={displayBin}
-                        // setTasks={setTasks}
-                        // toggleTask={() => toggleTask(task.id)}
-                        key={task.id}
-                        // bin={displayBin}
-                        // setBin={setBin}
-                        isBin={isBin}
-                        // refetchActive={refetchActive}
-                        // refetchBin={refetchBin}
-                      />
-                    );
-                  })} */}
-              </ul>
-            )}
-          </Suspense>
+              <button type="button" onClick={retryList}>
+                Retry
+              </button>
+            </div>
+          ) : (
+            <Suspense fallback={<Loading />}>
+              {showedTasks.length === 0 && deferredSearchValue.trim() !== "" ? (
+                <div style={{ padding: "10px 20px" }}>
+                  No tasks found with {`"${deferredSearchValue}"`}
+                </div>
+              ) : showedTasks.length ? (
+                <ul>
+                  {showedTasks.map((task: TaskType) => {
+                    return <Task task={task} key={task.id} isBin={isBin} />;
+                  })}
+                </ul>
+              ) : (
+                <div style={{ padding: "10px 20px" }}>No tasks found</div>
+              )}
+            </Suspense>
+          )}
         </ErrorBoundary>
       </Grid>
     </Grid>
