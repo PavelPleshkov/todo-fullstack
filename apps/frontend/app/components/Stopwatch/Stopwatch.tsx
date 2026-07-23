@@ -1,7 +1,8 @@
 "use client";
 
 import { Button, Grid } from "@mui/material";
-import { memo, useCallback, useEffect, useRef, useState } from "react";
+// import { memo, useCallback, useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 
 interface RunBtnProps {
   isRunning: boolean;
@@ -101,75 +102,113 @@ const StopwatchControl = memo(function StopwatchControl({
 });
 
 export default function Stopwatch() {
-  const [seconds, setSeconds] = useState(0);
-  const [minutes, setMinutes] = useState(0);
-  const [hours, setHours] = useState(0);
-  const [isRunning, setIsRunning] = useState(false);
-  const [isDisabled, setIsDisabled] = useState(false);
-  const timeRef = useRef(0);
+  // const [seconds, setSeconds] = useState(0);
+  // const [minutes, setMinutes] = useState(0);
+  // const [hours, setHours] = useState(0);
+  // // const timeRef = useRef(0);
+  const [totalSeconds, setTotalSeconds] = useState<number>(0);
+  const [isRunning, setIsRunning] = useState<boolean>(false);
 
-  async function stopTime(timeId: number) {
-    clearInterval(timeId);
-    await setIsRunning(false);
-    return;
-  }
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  const isAtLimit = totalSeconds >= 3600;
+  const canTick = isRunning && !isAtLimit;
 
   useEffect(() => {
-    if (isRunning && minutes < 60) {
-      timeRef.current = +setInterval(() => {
-        if (minutes === 59 && seconds === 59) {
-          stopTime(timeRef.current);
-          setHours(1);
-          setMinutes(0);
-          setSeconds(0);
-          setIsDisabled(true);
-          console.log(`1 hour left at ${new Date().toLocaleTimeString()}`);
-        } else if (seconds === 59) {
-          setSeconds(0);
-          setMinutes((m) => m + 1);
-        } else {
-          setSeconds((s) => s + 1);
-        }
-      }, 1000);
-    } else {
-      if (minutes === 60) {
-        stopTime(timeRef.current);
-        setIsDisabled(true);
-        console.log("else effect");
-      }
-    }
+    if (!canTick) return;
 
-    return () => {
-      clearInterval(timeRef.current);
-    };
-  }, [isRunning, seconds, minutes]);
+    const id = window.setInterval(() => {
+      setTotalSeconds((prev) => Math.min(prev + 1, 3600));
+    }, 1000);
+
+    return () => clearInterval(id);
+  }, [canTick]);
 
   const handleResetBtn = useCallback(() => {
-    // console.log("🔄 StopwatchControl render");
-    setHours(0);
-    setSeconds(0);
-    setMinutes(0);
-    stopTime(timeRef.current);
-    setIsDisabled(false);
+    setTotalSeconds(0);
+    setIsRunning(false);
   }, []);
+
+  // useEffect(() => {
+  //   (async function () {
+  //     if (totalSeconds >= 3600) {
+  //       await setIsRunning(false);
+  //       setIsDisabled(true);
+  //     }
+  //   })();
+  // }, [totalSeconds]);
+
+  // async function stopTime(timeId: number) {
+  //   clearInterval(timeId);
+  //   await setIsRunning(false);
+  //   return;
+  // }
+
+  // useEffect(() => {
+  //   if (isRunning && minutes < 60) {
+  //     timeRef.current = +setInterval(() => {
+  //       if (minutes === 59 && seconds === 59) {
+  //         stopTime(timeRef.current);
+  //         setHours(1);
+  //         setMinutes(0);
+  //         setSeconds(0);
+  //         setIsDisabled(true);
+  //         console.log(`1 hour left at ${new Date().toLocaleTimeString()}`);
+  //       } else if (seconds === 59) {
+  //         setSeconds(0);
+  //         setMinutes((m) => m + 1);
+  //       } else {
+  //         setSeconds((s) => s + 1);
+  //       }
+  //     }, 1000);
+  //   } else {
+  //     if (minutes === 60) {
+  //       stopTime(timeRef.current);
+  //       setIsDisabled(true);
+  //       console.log("else effect");
+  //     }
+  //   }
+
+  //   return () => {
+  //     clearInterval(timeRef.current);
+  //   };
+  // }, [isRunning, seconds, minutes]);
+
+  // const handleResetBtn = useCallback(() => {
+  //   totalSecondsRef.current = 0;
+  //   setTotalSeconds(0);
+  //   setIsRunning(false);
+  //   setIsDisabled(false);
+  // }, []);
+
+  // const handleResetBtn = useCallback(() => {
+  //   // console.log("🔄 StopwatchControl render");
+  //   setHours(0);
+  //   setSeconds(0);
+  //   setMinutes(0);
+  //   stopTime(timeRef.current);
+  //   setIsDisabled(false);
+  // }, []);
 
   return (
     <Grid size={12} data-testid="stopwatch">
       <div style={{ padding: "10px" }}>
         Stopwatch: {"0" + hours.toFixed(0)}
         {" : "}
-        {minutes > 9 && minutes < 60
-          ? minutes.toFixed(0)
-          : "0" + minutes.toFixed(0)}
+        {/* {minutes > 9 && minutes < 60 */}
+        {minutes > 9 ? minutes.toFixed(0) : "0" + minutes.toFixed(0)}
         {" : "}
-        {seconds > 9 && seconds < 60
-          ? seconds.toFixed(0)
-          : "0" + seconds.toFixed(0)}
+        {/* {seconds > 9 && seconds < 60 */}
+        {seconds > 9 ? seconds.toFixed(0) : "0" + seconds.toFixed(0)}
       </div>
       {/* <div>{time.toLocaleTimeString()}</div> */}
       <StopwatchControl
-        isRunning={isRunning}
-        isDisabled={isDisabled}
+        // isRunning={isRunning}
+        // isDisabled={isDisabled}
+        isRunning={isRunning && !isAtLimit}
+        isDisabled={isAtLimit}
         setIsRunning={setIsRunning}
         handleResetBtn={handleResetBtn}
       />

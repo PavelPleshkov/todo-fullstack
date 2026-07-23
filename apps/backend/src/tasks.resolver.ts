@@ -48,6 +48,11 @@ export class TasksResolver {
     return this.tasksService.permanentlyDeleteFromBin(id);
   }
 
+  @Mutation(() => Task)
+  moveTaskToActive(@Args('id', { type: () => Int }) id: number): Promise<Task> {
+    return this.tasksService.moveTaskToActive(id);
+  }
+
   @Mutation(() => MoveCompletedResult)
   moveCompletedToBin(): Promise<MoveCompletedResult> {
     return this.tasksService.moveCompletedToBin();

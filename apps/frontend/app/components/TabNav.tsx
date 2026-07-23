@@ -38,6 +38,13 @@ export default function TabNav() {
             component={Link}
             href={tab.href}
             data-testid={`tab-${tab.href.slice(1)}`}
+            sx={{
+              ":hover": {
+                backgroundColor: theme === "dark" ? "#1d1d1d" : "#e0e0e0",
+                color: theme === "dark" ? "#ffffff" : "#000000",
+                borderRadius: "5px",
+              },
+            }}
           />
         ))}
       </Tabs>

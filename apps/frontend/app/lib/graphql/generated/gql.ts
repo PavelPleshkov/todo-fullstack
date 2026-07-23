@@ -19,6 +19,7 @@ type Documents = {
     "\n  mutation CreateTask($input: CreateTaskInput!) {\n    createTask(input: $input) {\n      id\n      text\n      isDone\n      date\n    }\n  }\n": typeof types.CreateTaskDocument,
     "\n  mutation UpdateTask($id: Int!, $input: UpdateTaskInput!) {\n    updateTask(id: $id, input: $input) {\n      id\n      text\n      isDone\n      date\n    }\n  }\n": typeof types.UpdateTaskDocument,
     "\n  mutation MoveTaskToBin($id: Int!) {\n    moveTaskToBin(id: $id) {\n      id\n      text\n      isDone\n      date\n    }\n  }\n": typeof types.MoveTaskToBinDocument,
+    "\n  mutation MoveTaskToActive($id: Int!) {\n    moveTaskToActive(id: $id) {\n      id\n      text\n      isDone\n      date\n    }\n  }\n": typeof types.MoveTaskToActiveDocument,
     "\n  mutation PermanentlyDeleteTask($id: Int!) {\n    permanentlyDeleteTask(id: $id)\n  }\n": typeof types.PermanentlyDeleteTaskDocument,
     "\n  mutation MoveCompletedToBin {\n    moveCompletedToBin {\n      moved {\n        id\n        text\n        isDone\n        date\n      }\n      tasks {\n        id\n        text\n        isDone\n        date\n      }\n    }\n  }\n": typeof types.MoveCompletedToBinDocument,
     "\n  mutation MarkAllActiveTasks {\n    markAllActiveTasks {\n      id\n      text\n      isDone\n      date\n    }\n  }\n": typeof types.MarkAllActiveTasksDocument,
@@ -30,6 +31,7 @@ const documents: Documents = {
     "\n  mutation CreateTask($input: CreateTaskInput!) {\n    createTask(input: $input) {\n      id\n      text\n      isDone\n      date\n    }\n  }\n": types.CreateTaskDocument,
     "\n  mutation UpdateTask($id: Int!, $input: UpdateTaskInput!) {\n    updateTask(id: $id, input: $input) {\n      id\n      text\n      isDone\n      date\n    }\n  }\n": types.UpdateTaskDocument,
     "\n  mutation MoveTaskToBin($id: Int!) {\n    moveTaskToBin(id: $id) {\n      id\n      text\n      isDone\n      date\n    }\n  }\n": types.MoveTaskToBinDocument,
+    "\n  mutation MoveTaskToActive($id: Int!) {\n    moveTaskToActive(id: $id) {\n      id\n      text\n      isDone\n      date\n    }\n  }\n": types.MoveTaskToActiveDocument,
     "\n  mutation PermanentlyDeleteTask($id: Int!) {\n    permanentlyDeleteTask(id: $id)\n  }\n": types.PermanentlyDeleteTaskDocument,
     "\n  mutation MoveCompletedToBin {\n    moveCompletedToBin {\n      moved {\n        id\n        text\n        isDone\n        date\n      }\n      tasks {\n        id\n        text\n        isDone\n        date\n      }\n    }\n  }\n": types.MoveCompletedToBinDocument,
     "\n  mutation MarkAllActiveTasks {\n    markAllActiveTasks {\n      id\n      text\n      isDone\n      date\n    }\n  }\n": types.MarkAllActiveTasksDocument,
@@ -70,6 +72,10 @@ export function graphql(source: "\n  mutation UpdateTask($id: Int!, $input: Upda
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation MoveTaskToBin($id: Int!) {\n    moveTaskToBin(id: $id) {\n      id\n      text\n      isDone\n      date\n    }\n  }\n"): (typeof documents)["\n  mutation MoveTaskToBin($id: Int!) {\n    moveTaskToBin(id: $id) {\n      id\n      text\n      isDone\n      date\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation MoveTaskToActive($id: Int!) {\n    moveTaskToActive(id: $id) {\n      id\n      text\n      isDone\n      date\n    }\n  }\n"): (typeof documents)["\n  mutation MoveTaskToActive($id: Int!) {\n    moveTaskToActive(id: $id) {\n      id\n      text\n      isDone\n      date\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

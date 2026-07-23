@@ -128,6 +128,17 @@ export class TasksService implements OnModuleInit, OnModuleDestroy {
     return this.mapRow(res.rows[0]);
   }
 
+  async moveTaskToActive(id: number): Promise<Task> {
+    const res = await this.client.query(
+      'UPDATE tasks SET deleted=false WHERE id=$1 RETURNING *',
+      [id],
+    );
+    if (res.rows.length === 0) {
+      throw new HttpException('Task not found in bin', HttpStatus.NOT_FOUND);
+    }
+    return this.mapRow(res.rows[0]);
+  }
+
   async permanentlyDeleteFromBin(id: number): Promise<boolean> {
     const res = await this.client.query(
       'DELETE FROM tasks WHERE id=$1 RETURNING *',

@@ -37,7 +37,7 @@ describe("Header", () => {
   it("technology list includes GraphQL and AI in order", () => {
     const techText = document.querySelector(".header-title-text");
     expect(techText).not.toBeNull();
-    expect(techText?.textContent ?? "").toMatch(/GraphQL,\s*AI/);
+    expect(techText?.textContent ?? "").toMatch(/GraphQL,\s*AI,\s*App Router/);
   });
 
   it("theme button has theme-btn and theme-specific classes", () => {

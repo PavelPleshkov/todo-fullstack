@@ -129,6 +129,15 @@ body {
 }
 
 .task-label {
+  /* display: block;
+  position: relative;
+  border: 1px solid rgba(29, 29, 29, 0.24);
+  border-radius: 5px;
+  width: 100%;
+  height: 100%;
+  padding: 10px 30px 10px 20px; */
+  /* opacity: isBin || task.isDone ? ".7" : "1",
+  cursor: isBin ? "not-allowed" : "pointer", */
   box-shadow:
     0px 2px 4px -1px rgba(0, 0, 0, 0.2),
     0px 4px 5px 0px rgba(0, 0, 0, 0.14),
@@ -153,14 +162,19 @@ body {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
 
-.task-input {
+.task-textarea {
+  /* width: 100%;
+  outline-color: #1d1d1d;
+  padding: 10px 30px 10px 20px;
+  resize: vertical;
+  min-height: fit-content; */
   box-shadow:
     0px 2px 4px -1px rgba(0, 0, 0, 0.2),
     0px 4px 5px 0px rgba(0, 0, 0, 0.14),
     0px 1px 10px 0px rgba(0, 0, 0, 0.12);
 }
 
-.task-input:hover {
+.task-textarea:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
 

@@ -22,7 +22,7 @@ export default function Header({ setTheme }: HeaderProps): React.ReactNode {
             </Icon>
             <span className="header-title-text">
               React, TS, Next.js, Nest.js, PostgreSQL, formik, yup, RTL, Jest,
-              GraphQL, AI
+              GraphQL, AI, App Router, optimization
             </span>
           </span>
         </h1>
