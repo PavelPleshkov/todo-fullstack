@@ -25,6 +25,33 @@ const Loading = () => {
   return <div style={{ padding: "10px 20px" }}>Loading...</div>;
 };
 
+const LoadingError = ({
+  listError,
+  retryList,
+}: {
+  listError: Error;
+  retryList: () => void;
+}) => {
+  return (
+    <div style={{ color: "red", padding: "10px 20px" }} role="alert">
+      <div>Failed to load tasks.</div>
+      <div style={{ margin: "8px 0" }}>{listError.message}</div>
+      <button
+        type="button"
+        style={{
+          padding: "10px 20px",
+          border: "1px solid red",
+          borderRadius: "5px",
+          cursor: "pointer",
+        }}
+        onClick={retryList}
+      >
+        Retry
+      </button>
+    </div>
+  );
+};
+
 // const RenderError = () => {
 //   return <div style={{ color: "red", padding: "10px 20px" }}>Render error</div>;
 // };
@@ -32,9 +59,7 @@ const RenderError = ({ error, resetErrorBoundary }: FallbackProps) => {
   return (
     <div style={{ color: "red", padding: "10px 20px" }} role="alert">
       <div>Render error</div>
-      <pre style={{ fontSize: 14, margin: "8px 0" }}>
-        {getErrorMessage(error)}
-      </pre>
+      <pre style={{ margin: "8px 0" }}>{getErrorMessage(error)}</pre>
       <button
         type="button"
         style={{
@@ -86,6 +111,17 @@ export default function Tasks() {
     skip: !isBin,
   });
   const bin: TaskType[] = binData?.binTasks ?? EMPTY_TASKS;
+
+  const listLoading = isBin ? binLoading : activeLoading;
+  const listError = isBin ? binError : activeError;
+
+  const retryList = () => {
+    if (isBin) {
+      refetchBin();
+    } else {
+      refetchActive();
+    }
+  };
 
   // const [updateTaskMutation] = useMutation(UPDATE_TASK_MUTATION);
 
@@ -142,7 +178,7 @@ export default function Tasks() {
 
   const sourceTasks = isBin ? bin : tasks;
 
-  //SEARCHING
+  //SEARCH
 
   const [searchValue, setSearchValue] = useState<string>("");
 
@@ -213,16 +249,6 @@ export default function Tasks() {
   //   }
   // };
 
-  const listLoading = isBin ? binLoading : activeLoading;
-  const listError = isBin ? binError : activeError;
-  const retryList = () => {
-    if (isBin) {
-      refetchBin();
-    } else {
-      refetchActive();
-    }
-  };
-
   return (
     <Grid
       container
@@ -280,15 +306,7 @@ export default function Tasks() {
           {listLoading ? (
             <div style={{ padding: "10px 20px" }}>Loading tasks...</div>
           ) : listError ? (
-            <div style={{ color: "red", padding: "10px 20px" }} role="alert">
-              <div>Failed to load tasks.</div>
-              <div style={{ fontSize: 12, margin: "8px 0" }}>
-                {listError.message}
-              </div>
-              <button type="button" onClick={retryList}>
-                Retry
-              </button>
-            </div>
+            <LoadingError listError={listError} retryList={retryList} />
           ) : (
             <Suspense fallback={<Loading />}>
               {showedTasks.length ? (
