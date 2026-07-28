@@ -140,6 +140,8 @@ export default function Tasks() {
     }
   }, [isBin]);
 
+  const sourceTasks = isBin ? bin : tasks;
+
   //SEARCHING
 
   const [searchValue, setSearchValue] = useState<string>("");
@@ -147,9 +149,8 @@ export default function Tasks() {
   const deferredSearchValue = useDeferredValue(searchValue);
 
   const showedTasks = useMemo(() => {
-    const source = isBin ? bin : tasks;
     const direction = isBin ? sortDirectionBin : sortDirectionActive;
-    const sorted = sortTasksByDirection(source, direction);
+    const sorted = sortTasksByDirection(sourceTasks, direction);
     const searchText = deferredSearchValue.trim().toLowerCase();
 
     if (!searchText) return sorted;
@@ -159,8 +160,7 @@ export default function Tasks() {
     );
   }, [
     isBin,
-    bin,
-    tasks,
+    sourceTasks,
     sortDirectionBin,
     sortDirectionActive,
     deferredSearchValue,
@@ -253,8 +253,7 @@ export default function Tasks() {
         sx={{ paddingBottom: "20px" }}
       >
         <h1 style={{ margin: "0 10px", padding: "10px 10px" }}>
-          {!isBin ? "Tasks" : "Bin"}
-          {/* {!isBin ? "Tasks" : displayBin.length ? "Bin" : "Bin is empty"} */}
+          {!isBin ? "Tasks" : sourceTasks.length ? "Bin" : "Bin is empty"}
         </h1>
         <Grid
           container
@@ -270,7 +269,7 @@ export default function Tasks() {
           }}
         >
           <Search
-            disabled={listLoading || (isBin ? bin : tasks).length === 0}
+            disabled={listLoading || sourceTasks.length === 0}
             searchValue={searchValue}
             handleSearch={handleSearch}
             clearSearch={clearSearch}
@@ -292,18 +291,20 @@ export default function Tasks() {
             </div>
           ) : (
             <Suspense fallback={<Loading />}>
-              {showedTasks.length === 0 && deferredSearchValue.trim() !== "" ? (
-                <div style={{ padding: "10px 20px" }}>
-                  No tasks found with {`"${deferredSearchValue}"`}
-                </div>
-              ) : showedTasks.length ? (
+              {showedTasks.length ? (
                 <ul>
                   {showedTasks.map((task: TaskType) => {
                     return <Task task={task} key={task.id} isBin={isBin} />;
                   })}
                 </ul>
-              ) : (
+              ) : sourceTasks.length === 0 ? (
                 <div style={{ padding: "10px 20px" }}>No tasks found</div>
+              ) : (
+                deferredSearchValue.trim() !== "" && (
+                  <div style={{ padding: "10px 20px" }}>
+                    No tasks found with {`"${deferredSearchValue}"`}
+                  </div>
+                )
               )}
             </Suspense>
           )}
