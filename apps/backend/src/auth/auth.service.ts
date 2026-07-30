@@ -9,13 +9,17 @@ import {
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { Client } from 'pg';
-import type { AuthUser } from '../graphql/auth.types';
+import { JwtService } from '@nestjs/jwt';
+import type { AuthUser, AuthPayload } from '../graphql/auth.types';
 
 @Injectable()
 export class AuthService implements OnModuleInit, OnModuleDestroy {
   private client!: Client;
 
-  constructor(private readonly configService: ConfigService) {}
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly jwtService: JwtService,
+  ) {}
 
   async onModuleInit() {
     const host = this.configService.get<string>('PGHOST', 'localhost');
@@ -60,7 +64,22 @@ export class AuthService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  async register(email: string, password: string): Promise<AuthUser> {
+  private signToken(user: AuthUser): string {
+    return this.jwtService.sign({
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    });
+  }
+
+  private toAuthPayload(user: AuthUser): AuthPayload {
+    return {
+      accessToken: this.signToken(user),
+      user,
+    };
+  }
+
+  async register(email: string, password: string): Promise<AuthPayload> {
     const normalizedEmail = this.normalizeEmail(email);
     this.validateCredentials(normalizedEmail, password);
 
@@ -72,7 +91,7 @@ export class AuthService implements OnModuleInit, OnModuleDestroy {
         [normalizedEmail, passwordHash],
       );
 
-      return this.mapRow(res.rows[0]);
+      return this.toAuthPayload(this.mapRow(res.rows[0]));
     } catch (error: unknown) {
       if (
         typeof error === 'object' &&
@@ -87,7 +106,7 @@ export class AuthService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  async login(email: string, password: string): Promise<AuthUser> {
+  async login(email: string, password: string): Promise<AuthPayload> {
     const normalizedEmail = this.normalizeEmail(email);
     this.validateCredentials(normalizedEmail, password);
 
@@ -110,6 +129,6 @@ export class AuthService implements OnModuleInit, OnModuleDestroy {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    return this.mapRow(row);
+    return this.toAuthPayload(this.mapRow(row));
   }
 }

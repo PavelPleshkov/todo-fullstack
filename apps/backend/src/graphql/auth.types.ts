@@ -12,6 +12,15 @@ export class AuthUser {
   role!: string;
 }
 
+@ObjectType()
+export class AuthPayload {
+  @Field()
+  accessToken!: string;
+
+  @Field(() => AuthUser)
+  user!: AuthUser;
+}
+
 @InputType()
 export class RegisterInput {
   @Field()

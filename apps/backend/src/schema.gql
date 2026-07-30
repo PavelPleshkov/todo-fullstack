@@ -2,6 +2,11 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type AuthPayload {
+  accessToken: String!
+  user: AuthUser!
+}
+
 type AuthUser {
   email: String!
   id: Int!
@@ -25,13 +30,13 @@ type MoveCompletedResult {
 
 type Mutation {
   createTask(input: CreateTaskInput!): Task!
-  login(input: LoginInput!): AuthUser!
+  login(input: LoginInput!): AuthPayload!
   markAllActiveTasks: [Task!]!
   moveCompletedToBin: MoveCompletedResult!
   moveTaskToActive(id: Int!): Task!
   moveTaskToBin(id: Int!): Task!
   permanentlyDeleteTask(id: Int!): Boolean!
-  register(input: RegisterInput!): AuthUser!
+  register(input: RegisterInput!): AuthPayload!
   unmarkAllActiveTasks: [Task!]!
   updateTask(id: Int!, input: UpdateTaskInput!): Task!
 }

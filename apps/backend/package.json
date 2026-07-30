@@ -28,6 +28,7 @@
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.1.14",
     "@nestjs/graphql": "^13.2.4",
+    "@nestjs/jwt": "^11.0.2",
     "@nestjs/platform-express": "^11.1.14",
     "bcrypt": "^6.0.0",
     "graphql": "^16.13.2",
