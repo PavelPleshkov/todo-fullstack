@@ -2,9 +2,20 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type AuthUser {
+  email: String!
+  id: Int!
+  role: String!
+}
+
 input CreateTaskInput {
   isDone: Boolean!
   text: String!
+}
+
+input LoginInput {
+  email: String!
+  password: String!
 }
 
 type MoveCompletedResult {
@@ -14,11 +25,13 @@ type MoveCompletedResult {
 
 type Mutation {
   createTask(input: CreateTaskInput!): Task!
+  login(input: LoginInput!): AuthUser!
   markAllActiveTasks: [Task!]!
   moveCompletedToBin: MoveCompletedResult!
   moveTaskToActive(id: Int!): Task!
   moveTaskToBin(id: Int!): Task!
   permanentlyDeleteTask(id: Int!): Boolean!
+  register(input: RegisterInput!): AuthUser!
   unmarkAllActiveTasks: [Task!]!
   updateTask(id: Int!, input: UpdateTaskInput!): Task!
 }
@@ -26,6 +39,11 @@ type Mutation {
 type Query {
   activeTasks: [Task!]!
   binTasks: [Task!]!
+}
+
+input RegisterInput {
+  email: String!
+  password: String!
 }
 
 type Task {

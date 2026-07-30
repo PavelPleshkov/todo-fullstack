@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Client } from 'pg';
-import type { Task } from './graphql/task.types';
+import type { Task } from '../graphql/task.types';
 
 export type UpdateTaskPayload = {
   text?: string;

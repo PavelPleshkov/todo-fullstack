@@ -4,7 +4,7 @@ import {
   MoveCompletedResult,
   Task,
   UpdateTaskInput,
-} from './graphql/task.types';
+} from '../graphql/task.types';
 import { TasksService } from './tasks.service';
 
 @Resolver()
