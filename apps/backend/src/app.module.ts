@@ -16,20 +16,10 @@ import { AuthModule } from './auth/auth.module';
       driver: ApolloDriver,
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
       sortSchema: true,
+      context: ({ req }: { req: unknown }) => ({ req }),
     }),
     TasksModule,
     AuthModule,
   ],
 })
 export class AppModule {}
-
-// import { Module } from '@nestjs/common';
-// import { AppController } from './app.controller';
-// import { AppService } from './app.service';
-
-// @Module({
-//   imports: [],
-//   controllers: [AppController],
-//   providers: [AppService],
-// })
-// export class AppModule {}
