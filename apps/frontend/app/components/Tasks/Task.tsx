@@ -6,6 +6,7 @@ import { useContext, useState, memo } from "react";
 
 import Btn from "./Btn";
 import { ThemeContext } from "@/app/ThemeContext";
+import { useAuth } from "@/app/AuthContext";
 
 // import { useApolloClient, useMutation } from "@apollo/client/react";
 import { useApolloClient } from "@apollo/client/react";
@@ -53,12 +54,16 @@ const Task = memo(function Task({
 
   const theme = useContext(ThemeContext);
 
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
+
   // const [updateTaskMut] = useMutation(UPDATE_TASK_MUTATION);
   // const [moveToBinMut] = useMutation(MOVE_TO_BIN_MUTATION);
   // const [permanentlyDeleteMut] = useMutation(PERMANENTLY_DELETE_MUTATION);
 
   //to prevent re-rendering because of the useMutation hook
   const client = useApolloClient();
+
   const toggleTask = async () => {
     if (isBin) return;
     await client.mutate({
@@ -163,15 +168,17 @@ const Task = memo(function Task({
       try {
         // const { data } = await permanentlyDeleteMut({ variables: { id } });
         // await permanentlyDeleteMut({ variables: { id } });
-        await client.mutate({
-          mutation: PERMANENTLY_DELETE_MUTATION,
-          variables: { id },
-          refetchQueries: [{ query: BIN_TASKS_QUERY }],
-        });
-        // if (data?.permanentlyDeleteTask) {
-        //   // setBin(bin.filter((task) => task.id !== id));
-        // await refetchBin();
-        // }
+        if (confirm("Are you sure you want to delete this task?")) {
+          await client.mutate({
+            mutation: PERMANENTLY_DELETE_MUTATION,
+            variables: { id },
+            refetchQueries: [{ query: BIN_TASKS_QUERY }],
+          });
+          // if (data?.permanentlyDeleteTask) {
+          //   // setBin(bin.filter((task) => task.id !== id));
+          // await refetchBin();
+          // }
+        }
       } catch (error) {
         console.log("Delete error: ", error);
       }
@@ -320,13 +327,33 @@ const Task = memo(function Task({
         </Grid>
         <Grid container direction={"row"} size={{ xs: 3, lg: 4 }} spacing={2}>
           <Grid>
-            <Btn
+            {!isBin ? (
+              <Btn
+                title="Move to bin"
+                onClick={() => deleteTask(task.id)}
+                variant="contained"
+              >
+                <Delete />
+              </Btn>
+            ) : (
+              isAdmin && (
+                <Btn
+                  title="Delete"
+                  onClick={() => deleteTask(task.id)}
+                  variant="contained"
+                >
+                  <Delete />
+                </Btn>
+              )
+            )}
+
+            {/* <Btn
               title={isBin ? "Delete" : "Move to bin"}
               onClick={() => deleteTask(task.id)}
               variant="contained"
             >
               <Delete />
-            </Btn>
+            </Btn> */}
           </Grid>
           <Grid>
             {/* <Btn

@@ -2,6 +2,7 @@ import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { ThemeContext } from "../ThemeContext";
+import { AuthProvider } from "../AuthContext";
 import Header from "./Header";
 import { useState } from "react";
 
@@ -9,9 +10,11 @@ function HeaderWithTheme() {
   const [theme, setTheme] = useState("dark");
 
   return (
-    <ThemeContext value={theme}>
-      <Header setTheme={setTheme} />
-    </ThemeContext>
+    <AuthProvider>
+      <ThemeContext value={theme}>
+        <Header setTheme={setTheme} />
+      </ThemeContext>
+    </AuthProvider>
   );
 }
 
