@@ -32,7 +32,10 @@ body {
 
 .header-inner {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  flex-direction: column;
+  flex-direction: column-reverse;
+  gap: 10px;
   width: 100%;
   min-width: 0;
   padding: var(--header-padding);
@@ -70,6 +73,13 @@ body {
   overflow-wrap: break-word;
 }
 
+.header-auth {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  align-self: flex-end;
+}
+
 .header-dark {
   background-color: #363636;
   color: var(--foreground);
@@ -77,6 +87,11 @@ body {
   .theme-btn-dark {
     background-color: var(--foreground);
     color: var(--background);
+  }
+
+  .login-btn-dark {
+    background-color: var(--background);
+    color: var(--foreground);
   }
 }
 
@@ -87,6 +102,11 @@ body {
   .theme-btn-light {
     background-color: var(--background);
     color: var(--foreground);
+  }
+
+  .login-btn-light {
+    background-color: var(--foreground);
+    color: var(--background);
   }
 }
 
@@ -110,6 +130,11 @@ body {
   .add-task-dark {
     background-color: #696969;
   }
+
+  .login-btn-dark {
+    background-color: var(--background);
+    color: var(--foreground);
+  }
 }
 
 .content-light {
@@ -125,6 +150,11 @@ body {
 
   .add-task-light {
     background-color: #994747;
+  }
+
+  .login-btn-light {
+    background-color: var(--foreground);
+    color: var(--background);
   }
 }
 

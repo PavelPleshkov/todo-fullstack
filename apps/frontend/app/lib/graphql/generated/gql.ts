@@ -14,6 +14,8 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
  * Learn more about it here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#reducing-bundle-size
  */
 type Documents = {
+    "\n  mutation Login($input: LoginInput!) {\n    login(input: $input) {\n      accessToken\n      user {\n        id\n        email\n        role\n      }\n    }\n  }\n": typeof types.LoginDocument,
+    "\n  mutation Register($input: RegisterInput!) {\n    register(input: $input) {\n      accessToken\n      user {\n        id\n        email\n        role\n      }\n    }\n  }\n": typeof types.RegisterDocument,
     "\n  query ActiveTasks {\n    activeTasks {\n      id\n      text\n      isDone\n      date\n    }\n  }\n": typeof types.ActiveTasksDocument,
     "\n  query BinTasks {\n    binTasks {\n      id\n      text\n      isDone\n      date\n    }\n  }\n": typeof types.BinTasksDocument,
     "\n  mutation CreateTask($input: CreateTaskInput!) {\n    createTask(input: $input) {\n      id\n      text\n      isDone\n      date\n    }\n  }\n": typeof types.CreateTaskDocument,
@@ -26,6 +28,8 @@ type Documents = {
     "\n  mutation UnmarkAllActiveTasks {\n    unmarkAllActiveTasks {\n      id\n      text\n      isDone\n      date\n    }\n  }\n": typeof types.UnmarkAllActiveTasksDocument,
 };
 const documents: Documents = {
+    "\n  mutation Login($input: LoginInput!) {\n    login(input: $input) {\n      accessToken\n      user {\n        id\n        email\n        role\n      }\n    }\n  }\n": types.LoginDocument,
+    "\n  mutation Register($input: RegisterInput!) {\n    register(input: $input) {\n      accessToken\n      user {\n        id\n        email\n        role\n      }\n    }\n  }\n": types.RegisterDocument,
     "\n  query ActiveTasks {\n    activeTasks {\n      id\n      text\n      isDone\n      date\n    }\n  }\n": types.ActiveTasksDocument,
     "\n  query BinTasks {\n    binTasks {\n      id\n      text\n      isDone\n      date\n    }\n  }\n": types.BinTasksDocument,
     "\n  mutation CreateTask($input: CreateTaskInput!) {\n    createTask(input: $input) {\n      id\n      text\n      isDone\n      date\n    }\n  }\n": types.CreateTaskDocument,
@@ -52,6 +56,14 @@ const documents: Documents = {
  */
 export function graphql(source: string): unknown;
 
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation Login($input: LoginInput!) {\n    login(input: $input) {\n      accessToken\n      user {\n        id\n        email\n        role\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation Login($input: LoginInput!) {\n    login(input: $input) {\n      accessToken\n      user {\n        id\n        email\n        role\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation Register($input: RegisterInput!) {\n    register(input: $input) {\n      accessToken\n      user {\n        id\n        email\n        role\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation Register($input: RegisterInput!) {\n    register(input: $input) {\n      accessToken\n      user {\n        id\n        email\n        role\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

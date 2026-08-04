@@ -4,7 +4,7 @@ import { Button, type ButtonProps, type SxProps } from "@mui/material";
 
 interface BtnProps extends ButtonProps {
   disabled?: boolean;
-  onClick: () => void;
+  onClick?: () => void;
   sx?: SxProps;
   title?: string;
   variant: ButtonProps["variant"];

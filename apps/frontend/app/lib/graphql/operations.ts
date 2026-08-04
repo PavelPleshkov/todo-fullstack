@@ -14,6 +14,32 @@
 
 import { graphql } from "./generated/gql";
 
+export const LOGIN_MUTATION = graphql(`
+  mutation Login($input: LoginInput!) {
+    login(input: $input) {
+      accessToken
+      user {
+        id
+        email
+        role
+      }
+    }
+  }
+`);
+
+export const REGISTER_MUTATION = graphql(`
+  mutation Register($input: RegisterInput!) {
+    register(input: $input) {
+      accessToken
+      user {
+        id
+        email
+        role
+      }
+    }
+  }
+`);
+
 export const ACTIVE_TASKS_QUERY = graphql(`
   query ActiveTasks {
     activeTasks {

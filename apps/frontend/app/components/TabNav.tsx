@@ -7,9 +7,10 @@ import { useContext } from "react";
 import { ThemeContext } from "../ThemeContext";
 
 const TABS = [
+  { label: "Login", href: "/login" },
+  { label: "Tasks", href: "/tasks" },
   { label: "Form", href: "/form" },
   { label: "Stopwatch", href: "/stopwatch" },
-  { label: "Tasks", href: "/tasks" },
 ] as const;
 
 export default function TabNav() {
