@@ -13,6 +13,12 @@ export class Task {
 
   @Field()
   date!: string;
+
+  @Field(() => Int)
+  userId!: number;
+
+  @Field()
+  ownerEmail!: string;
 }
 
 @InputType()

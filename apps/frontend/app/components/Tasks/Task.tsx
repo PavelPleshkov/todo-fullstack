@@ -4,7 +4,7 @@ import { Delete } from "@mui/icons-material";
 import { Grid } from "@mui/material";
 import { useContext, useState, memo } from "react";
 
-import Btn from "./Btn";
+import Btn from "../Btn";
 import { ThemeContext } from "@/app/ThemeContext";
 import { useAuth } from "@/app/AuthContext";
 
@@ -24,6 +24,8 @@ export interface Task {
   text: string;
   isDone: boolean;
   date: string;
+  userId: number;
+  ownerEmail: string;
 }
 
 export interface TaskProps {
@@ -217,7 +219,9 @@ const Task = memo(function Task({
               style={{
                 display: "block",
                 position: "relative",
-                // backgroundColor: task.isDone ? "transparent" : "#363636",
+                backgroundColor:
+                  // theme === "dark" ? "#696969" : "var(--foreground)",
+                  theme === "dark" ? "transparent" : "var(--foreground)",
                 border: "1px solid rgba(29, 29, 29, 0.24)",
                 borderRadius: "5px",
                 width: "100%",
@@ -263,6 +267,16 @@ const Task = memo(function Task({
                   <div>{task.date}</div>
                   <div
                     style={{
+                      fontSize: 12,
+                      opacity: 0.7,
+                      marginBottom: 4,
+                    }}
+                    data-testid="task-owner-email"
+                  >
+                    {task.ownerEmail}
+                  </div>
+                  <div
+                    style={{
                       whiteSpace: "pre-wrap",
                       overflow: "hidden",
                       display: "-webkit-box",
@@ -278,6 +292,7 @@ const Task = memo(function Task({
           ) : (
             <textarea
               className={isBin ? "" : "task-textarea"}
+              data-testid="task-textarea"
               id={task.id.toString()}
               // type="text"
               rows={5}
@@ -291,16 +306,16 @@ const Task = memo(function Task({
               // onBlur={() => {
               // saveTask(task.id);
               // }}
-              onFocus={(e) => {
-                e.target.setSelectionRange(
-                  e.target.value.length,
-                  e.target.value.length,
-                );
-                e.target.scrollTo({
-                  top: e.target.scrollHeight,
-                  behavior: "smooth",
-                });
-              }}
+              // onFocus={(e) => {
+              //   e.target.setSelectionRange(
+              //     e.target.value.length,
+              //     e.target.value.length,
+              //   );
+              //   e.target.scrollTo({
+              //     top: e.target.scrollHeight,
+              //     behavior: "smooth",
+              //   });
+              // }}
               onChange={(e) => {
                 setSelfText(e.target.value);
 

@@ -1,11 +1,12 @@
 "use client";
 
-import { Button, Icon } from "@mui/material";
+import { Icon } from "@mui/material";
 import Link from "next/link";
 import { useContext } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../AuthContext";
 import { ThemeContext } from "../ThemeContext";
+import Btn from "./Btn";
 
 interface HeaderProps {
   setTheme: (theme: string) => void;
@@ -17,11 +18,9 @@ export default function Header({ setTheme }: HeaderProps): React.ReactNode {
   const router = useRouter();
 
   const className: string = "header header-" + theme;
-  const classNameThemeBtn: string = "theme-btn theme-btn-" + theme;
-  const classNameLoginBtn: string = "login-btn login-btn-" + theme;
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     router.push("/login");
   };
 
@@ -34,8 +33,8 @@ export default function Header({ setTheme }: HeaderProps): React.ReactNode {
               star
             </Icon>
             <span className="header-title-text">
-              React, TS, Next.js, Nest.js, PostgreSQL, formik, yup, RTL, Jest,
-              GraphQL, AI, App Router, optimization, Auth
+              React, TS, Next.js, Nest.js, PostgreSQL, Formik with Yup, RTL,
+              Jest, GraphQL, AI, App Router, optimization, Auth
             </span>
           </span>
         </h1>
@@ -47,19 +46,17 @@ export default function Header({ setTheme }: HeaderProps): React.ReactNode {
                 {user.email}
                 {user.role === "admin" ? " (admin)" : ""}
               </span>
-              <Button
-                className={classNameLoginBtn}
+              <Btn
                 data-testid="logout-btn"
-                onClick={handleLogout}
                 variant="contained"
                 size="small"
+                onClick={handleLogout}
               >
                 Logout
-              </Button>
+              </Btn>
             </>
           ) : (
-            <Button
-              className={classNameLoginBtn}
+            <Btn
               data-testid="login-link-btn"
               component={Link}
               href="/login"
@@ -67,20 +64,20 @@ export default function Header({ setTheme }: HeaderProps): React.ReactNode {
               size="small"
             >
               Login
-            </Button>
+            </Btn>
           )}
         </div>
-        <Button
-          className={classNameThemeBtn}
+        <Btn
+          className="theme-btn"
           data-testid="theme-btn"
+          variant="contained"
+          size="small"
           onClick={() => {
             setTheme(theme === "dark" ? "light" : "dark");
           }}
-          variant="contained"
-          size="small"
         >
           {theme === "dark" ? "Light" : "Dark"}
-        </Button>
+        </Btn>
       </div>
     </header>
   );

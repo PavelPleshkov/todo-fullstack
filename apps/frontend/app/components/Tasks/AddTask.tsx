@@ -1,6 +1,6 @@
 import { Grid } from "@mui/material";
 import { memo, useContext, useState } from "react";
-import Btn from "./Btn";
+import Btn from "../Btn";
 import { ThemeContext } from "@/app/ThemeContext";
 // import { useApolloClient, useMutation } from "@apollo/client/react";
 import { useApolloClient } from "@apollo/client/react";

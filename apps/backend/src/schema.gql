@@ -31,19 +31,19 @@ type MoveCompletedResult {
 type Mutation {
   createTask(input: CreateTaskInput!): Task!
   login(input: LoginInput!): AuthPayload!
-  markAllActiveTasks: [Task!]!
-  moveCompletedToBin: MoveCompletedResult!
+  markAllActiveTasks(ownerId: Int): [Task!]!
+  moveCompletedToBin(ownerId: Int): MoveCompletedResult!
   moveTaskToActive(id: Int!): Task!
   moveTaskToBin(id: Int!): Task!
   permanentlyDeleteTask(id: Int!): Boolean!
   register(input: RegisterInput!): AuthPayload!
-  unmarkAllActiveTasks: [Task!]!
+  unmarkAllActiveTasks(ownerId: Int): [Task!]!
   updateTask(id: Int!, input: UpdateTaskInput!): Task!
 }
 
 type Query {
-  activeTasks: [Task!]!
-  binTasks: [Task!]!
+  activeTasks(ownerId: Int): [Task!]!
+  binTasks(ownerId: Int): [Task!]!
 }
 
 input RegisterInput {
@@ -55,7 +55,9 @@ type Task {
   date: String!
   id: Int!
   isDone: Boolean!
+  ownerEmail: String!
   text: String!
+  userId: Int!
 }
 
 input UpdateTaskInput {

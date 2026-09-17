@@ -100,7 +100,10 @@ export default function Tasks() {
     loading: activeLoading,
     error: activeError,
     refetch: refetchActive,
-  } = useQuery(ACTIVE_TASKS_QUERY);
+  } = useQuery(ACTIVE_TASKS_QUERY, {
+    skip: !isAuthenticated,
+  });
+
   const tasks: TaskType[] = activeData?.activeTasks ?? EMPTY_TASKS;
 
   // const { data: binData } = useQuery(BIN_TASKS_QUERY, {
@@ -112,8 +115,9 @@ export default function Tasks() {
     error: binError,
     refetch: refetchBin,
   } = useQuery(BIN_TASKS_QUERY, {
-    skip: !isBin,
+    skip: !isAuthenticated || !isBin,
   });
+
   const bin: TaskType[] = binData?.binTasks ?? EMPTY_TASKS;
 
   const listLoading = isBin ? binLoading : activeLoading;

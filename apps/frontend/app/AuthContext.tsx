@@ -1,9 +1,11 @@
 "use client";
 
+import { useApolloClient } from "@apollo/client/react";
 import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -20,8 +22,8 @@ type AuthContextValue = {
   user: StoredUser | null;
   token: string | null;
   isAuthenticated: boolean;
-  setSession: (token: string, user: StoredUser) => void;
-  logout: () => void;
+  setSession: (token: string, user: StoredUser) => Promise<void>;
+  logout: () => Promise<void>;
 };
 
 export const AuthContext = createContext<AuthContextValue | null>(null);
@@ -39,17 +41,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(() => getToken());
   const [user, setUser] = useState<StoredUser | null>(() => getStoredUser());
 
-  const setSession = useCallback((nextToken: string, nextUser: StoredUser) => {
-    setAuth(nextToken, nextUser);
-    setToken(nextToken);
-    setUser(nextUser);
+  const client = useApolloClient();
+
+  useEffect(() => {
+    setToken(getToken());
+    setUser(getStoredUser());
   }, []);
 
-  const logout = useCallback(() => {
+  const setSession = useCallback(
+    async (nextToken: string, nextUser: StoredUser) => {
+      setAuth(nextToken, nextUser);
+      setToken(nextToken);
+      setUser(nextUser);
+      await client.resetStore();
+    },
+    [client],
+  );
+
+  const logout = useCallback(async () => {
     clearAuth();
     setToken(null);
     setUser(null);
-  }, []);
+    await client.clearStore();
+  }, [client]);
 
   const value = useMemo<AuthContextValue>(
     () => ({

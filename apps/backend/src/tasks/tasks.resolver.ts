@@ -18,13 +18,23 @@ export class TasksResolver {
   constructor(private readonly tasksService: TasksService) {}
 
   @Query(() => [Task], { name: 'activeTasks' })
-  activeTasks(): Promise<Task[]> {
-    return this.tasksService.findActive();
+  @UseGuards(JwtAuthGuard)
+  activeTasks(
+    @CurrentUser() user: JwtPayload,
+    @Args('ownerId', { type: () => Int, nullable: true })
+    ownerId?: number | null,
+  ): Promise<Task[]> {
+    return this.tasksService.findActive(user, ownerId);
   }
 
   @Query(() => [Task], { name: 'binTasks' })
-  binTasks(): Promise<Task[]> {
-    return this.tasksService.findBin();
+  @UseGuards(JwtAuthGuard)
+  binTasks(
+    @CurrentUser() user: JwtPayload,
+    @Args('ownerId', { type: () => Int, nullable: true })
+    ownerId?: number | null,
+  ): Promise<Task[]> {
+    return this.tasksService.findBin(user, ownerId);
   }
 
   @Mutation(() => Task)
@@ -41,7 +51,8 @@ export class TasksResolver {
       user.sub,
       user.role,
     );
-    return this.tasksService.create(input.text, input.isDone);
+
+    return this.tasksService.create(input.text, input.isDone, user.sub);
   }
 
   @Mutation(() => Task)
@@ -49,14 +60,18 @@ export class TasksResolver {
   updateTask(
     @Args('id', { type: () => Int }) id: number,
     @Args('input', { type: () => UpdateTaskInput }) input: UpdateTaskInput,
+    @CurrentUser() user: JwtPayload,
   ): Promise<Task> {
-    return this.tasksService.update(id, input);
+    return this.tasksService.update(id, input, user);
   }
 
   @Mutation(() => Task)
   @UseGuards(JwtAuthGuard)
-  moveTaskToBin(@Args('id', { type: () => Int }) id: number): Promise<Task> {
-    return this.tasksService.moveToBin(id);
+  moveTaskToBin(
+    @Args('id', { type: () => Int }) id: number,
+    @CurrentUser() user: JwtPayload,
+  ): Promise<Task> {
+    return this.tasksService.moveToBin(id, user);
   }
 
   @Mutation(() => Boolean)
@@ -70,25 +85,40 @@ export class TasksResolver {
 
   @Mutation(() => Task)
   @UseGuards(JwtAuthGuard)
-  moveTaskToActive(@Args('id', { type: () => Int }) id: number): Promise<Task> {
-    return this.tasksService.moveTaskToActive(id);
+  moveTaskToActive(
+    @Args('id', { type: () => Int }) id: number,
+    @CurrentUser() user: JwtPayload,
+  ): Promise<Task> {
+    return this.tasksService.moveTaskToActive(id, user);
   }
 
   @Mutation(() => MoveCompletedResult)
   @UseGuards(JwtAuthGuard)
-  moveCompletedToBin(): Promise<MoveCompletedResult> {
-    return this.tasksService.moveCompletedToBin();
+  moveCompletedToBin(
+    @CurrentUser() user: JwtPayload,
+    @Args('ownerId', { type: () => Int, nullable: true })
+    ownerId?: number | null,
+  ): Promise<MoveCompletedResult> {
+    return this.tasksService.moveCompletedToBin(user, ownerId);
   }
 
   @Mutation(() => [Task])
   @UseGuards(JwtAuthGuard)
-  markAllActiveTasks(): Promise<Task[]> {
-    return this.tasksService.markAll();
+  markAllActiveTasks(
+    @CurrentUser() user: JwtPayload,
+    @Args('ownerId', { type: () => Int, nullable: true })
+    ownerId?: number | null,
+  ): Promise<Task[]> {
+    return this.tasksService.markAll(user, ownerId);
   }
 
   @Mutation(() => [Task])
   @UseGuards(JwtAuthGuard)
-  unmarkAllActiveTasks(): Promise<Task[]> {
-    return this.tasksService.unmarkAll();
+  unmarkAllActiveTasks(
+    @CurrentUser() user: JwtPayload,
+    @Args('ownerId', { type: () => Int, nullable: true })
+    ownerId?: number | null,
+  ): Promise<Task[]> {
+    return this.tasksService.unmarkAll(user, ownerId);
   }
 }

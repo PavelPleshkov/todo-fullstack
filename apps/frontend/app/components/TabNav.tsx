@@ -9,7 +9,7 @@ import { ThemeContext } from "../ThemeContext";
 const TABS = [
   { label: "Login", href: "/login" },
   { label: "Tasks", href: "/tasks" },
-  { label: "Form", href: "/form" },
+  // { label: "Form", href: "/form" },
   { label: "Stopwatch", href: "/stopwatch" },
 ] as const;
 
@@ -44,6 +44,8 @@ export default function TabNav() {
                 backgroundColor: theme === "dark" ? "#1d1d1d" : "#e0e0e0",
                 color: theme === "dark" ? "#ffffff" : "#000000",
                 borderRadius: "5px",
+                borderBottomLeftRadius: "0px",
+                borderBottomRightRadius: "0px",
               },
             }}
           />

@@ -47,6 +47,8 @@ export const ACTIVE_TASKS_QUERY = graphql(`
       text
       isDone
       date
+      userId
+      ownerEmail
     }
   }
 `);
@@ -58,6 +60,8 @@ export const BIN_TASKS_QUERY = graphql(`
       text
       isDone
       date
+      userId
+      ownerEmail
     }
   }
 `);
@@ -69,6 +73,8 @@ export const CREATE_TASK_MUTATION = graphql(`
       text
       isDone
       date
+      userId
+      ownerEmail
     }
   }
 `);
@@ -80,6 +86,8 @@ export const UPDATE_TASK_MUTATION = graphql(`
       text
       isDone
       date
+      userId
+      ownerEmail
     }
   }
 `);
@@ -102,6 +110,8 @@ export const MOVE_TO_ACTIVE_MUTATION = graphql(`
       text
       isDone
       date
+      userId
+      ownerEmail
     }
   }
 `);
@@ -120,12 +130,16 @@ export const MOVE_COMPLETED_MUTATION = graphql(`
         text
         isDone
         date
+        userId
+        ownerEmail
       }
       tasks {
         id
         text
         isDone
         date
+        userId
+        ownerEmail
       }
     }
   }
@@ -138,6 +152,8 @@ export const MARK_ALL_MUTATION = graphql(`
       text
       isDone
       date
+      userId
+      ownerEmail
     }
   }
 `);
@@ -149,6 +165,8 @@ export const UNMARK_ALL_MUTATION = graphql(`
       text
       isDone
       date
+      userId
+      ownerEmail
     }
   }
 `);

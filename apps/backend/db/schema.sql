@@ -15,5 +15,8 @@ CREATE TABLE IF NOT EXISTS tasks (
   text        TEXT NOT NULL,
   isdone      BOOLEAN NOT NULL DEFAULT FALSE,
   deleted     BOOLEAN NOT NULL DEFAULT FALSE,
-  date        TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  date        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  user_id     INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE
 );
+
+CREATE INDEX IF NOT EXISTS tasks_user_id_idx ON tasks (user_id);

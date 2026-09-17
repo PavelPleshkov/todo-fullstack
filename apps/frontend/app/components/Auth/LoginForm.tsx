@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Grid, TextField, Typography } from "@mui/material";
+import { Grid, TextField, Typography } from "@mui/material";
 import { useMutation } from "@apollo/client/react";
 import { useFormik } from "formik";
 import { useRouter } from "next/navigation";
@@ -8,6 +8,7 @@ import { useContext, useState } from "react";
 import * as yup from "yup";
 import { useAuth } from "@/app/AuthContext";
 import { LOGIN_MUTATION } from "@/app/lib/graphql/operations";
+import Btn from "../Btn";
 import { ThemeContext } from "@/app/ThemeContext";
 
 const validationSchema = yup.object({
@@ -20,7 +21,6 @@ const validationSchema = yup.object({
 
 export default function LoginForm() {
   const theme: string = useContext(ThemeContext);
-  const classNameLoginBtn: string = "login-btn login-btn-" + theme;
 
   const router = useRouter();
   const { setSession } = useAuth();
@@ -52,7 +52,7 @@ export default function LoginForm() {
           return;
         }
 
-        setSession(payload.accessToken, {
+        await setSession(payload.accessToken, {
           id: payload.user.id,
           email: payload.user.email,
           role: payload.user.role,
@@ -65,9 +65,83 @@ export default function LoginForm() {
     },
   });
 
+  const slotProps = {
+    // inputLabel: {
+    //   sx: {
+    //     color: theme === "dark" ? "#ffffff" : "green",
+    //   },
+    // },
+    input: {
+      sx: {
+        color: theme === "dark" ? "var(--foreground)" : "var(--background)",
+        backgroundColor: theme === "dark" ? "#363636" : "#ffffff",
+        borderRadius: "5px",
+        // "& fieldset": { border: "1px solid #1d1d1d" },
+        // "&:hover fieldset": { border: "1px solid #1d1d1d" },
+        // "&.Mui-focused fieldset": { border: "1px solid #1d1d1d" },
+        "& .MuiOutlinedInput-notchedOutline": {
+          borderColor: "#1d1d1d",
+          borderWidth: "1px",
+        },
+        // "&:hover .MuiOutlinedInput-notchedOutline": {
+        //   borderColor: "#1d1d1d",
+        // },
+        "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+          // borderColor: "#1d1d1d",
+          borderColor:
+            theme === "dark" ? "var(--foreground)" : "var(--background)",
+          borderWidth: "2px",
+        },
+        "&.Mui-error .MuiOutlinedInput-notchedOutline": {
+          borderColor: "#d32f2f",
+          color: "#d32f2f",
+        },
+        "&.Mui-error.Mui-focused .MuiOutlinedInput-notchedOutline": {
+          // borderColor: "#d32f2f",
+        },
+      },
+    },
+    inputLabel: {
+      sx: {
+        color: theme === "dark" ? "var(--foreground)" : "var(--background)",
+        "&.Mui-focused": {
+          // position: "relative",
+          // left: "-7px",
+          // top: "28px",
+          // width: "fit-content",
+          padding: "1px 2px",
+          borderRadius: "5px",
+          // backgroundColor: theme === "dark" ? "#363636" : "#ffffff",
+          color: theme === "dark" ? "var(--foreground)" : "var(--background)",
+        },
+        "&.Mui-error.Mui-focused": {
+          // borderColor: "#d32f2f",
+          backgroundColor: "#d32f2f",
+          // color: theme === "dark" ? "var(--foreground)" : "var(--background)",
+          color: "var(--foreground)",
+          // color: "#d32f2f",
+        },
+      },
+    },
+    formHelperText: {
+      sx: {
+        backgroundColor: "transparent",
+        mx: 0,
+      },
+    },
+  };
+
   return (
     <Grid size={12}>
-      <h1 style={{ margin: "0 10px", padding: "10px 10px" }}>Login</h1>
+      <h1
+        style={{
+          margin: "0 10px",
+          padding: "20px 10px 10px",
+          textAlign: "center",
+        }}
+      >
+        Login
+      </h1>
 
       <form data-testid="login-form" onSubmit={formik.handleSubmit}>
         <Grid
@@ -75,10 +149,14 @@ export default function LoginForm() {
           spacing={2}
           direction="column"
           size={12}
-          sx={{ padding: "10px" }}
+          sx={{
+            padding: "10px",
+            alignItems: "center",
+          }}
         >
-          <Grid size={6}>
+          <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3, xl: 2 }}>
             <TextField
+              slotProps={slotProps}
               fullWidth
               data-testid="login-email"
               label="Email"
@@ -92,8 +170,9 @@ export default function LoginForm() {
             />
           </Grid>
 
-          <Grid size={6}>
+          <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3, xl: 2 }}>
             <TextField
+              slotProps={slotProps}
               fullWidth
               data-testid="login-password"
               label="Password"
@@ -115,16 +194,19 @@ export default function LoginForm() {
             </Grid>
           ) : null}
 
-          <Grid size={12}>
-            <Button
-              className={classNameLoginBtn}
+          <Grid
+            container
+            size={{ xs: 12, sm: 6, md: 4, lg: 3, xl: 2 }}
+            sx={{ justifyContent: "flex-end" }}
+          >
+            <Btn
               data-testid="login-submit"
               type="submit"
               variant="contained"
               disabled={loading}
             >
               {loading ? "Signing in…" : "Sign in"}
-            </Button>
+            </Btn>
           </Grid>
         </Grid>
       </form>

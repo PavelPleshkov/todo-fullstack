@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
 import "./globals.css";
+import "./styles/main.scss";
 import { ApolloWrapper } from "./ApolloWrapper";
 
 const roboto = Roboto({
