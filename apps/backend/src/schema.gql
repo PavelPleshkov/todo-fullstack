@@ -44,6 +44,7 @@ type Mutation {
 type Query {
   activeTasks(ownerId: Int): [Task!]!
   binTasks(ownerId: Int): [Task!]!
+  users: [AuthUser!]!
 }
 
 input RegisterInput {

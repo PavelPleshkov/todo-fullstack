@@ -5,6 +5,7 @@ import { AuthResolver } from './auth.resolver';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { RolesGuard } from './roles.guard';
+import { UsersResolver } from './users.resolver';
 
 @Module({
   imports: [
@@ -16,7 +17,13 @@ import { RolesGuard } from './roles.guard';
       }),
     }),
   ],
-  providers: [AuthService, AuthResolver, JwtAuthGuard, RolesGuard],
+  providers: [
+    AuthService,
+    AuthResolver,
+    UsersResolver,
+    JwtAuthGuard,
+    RolesGuard,
+  ],
   exports: [AuthService, JwtModule, JwtAuthGuard, RolesGuard],
 })
 export class AuthModule {}

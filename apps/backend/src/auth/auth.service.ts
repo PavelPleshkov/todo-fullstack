@@ -51,6 +51,14 @@ export class AuthService implements OnModuleInit, OnModuleDestroy {
     };
   }
 
+  async findAllUsers(): Promise<AuthUser[]> {
+    const res = await this.client.query(
+      `SELECT id, email, role FROM users ORDER BY id ASC`,
+    );
+
+    return res.rows.map((row: Record<string, unknown>) => this.mapRow(row));
+  }
+
   private normalizeEmail(email: string): string {
     return email.toLowerCase().trim();
   }
