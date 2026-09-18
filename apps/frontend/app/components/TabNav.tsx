@@ -5,19 +5,27 @@ import { usePathname } from "next/navigation";
 import { Tab, Tabs } from "@mui/material";
 import { useContext } from "react";
 import { ThemeContext } from "../ThemeContext";
+import { useAuth } from "../AuthContext";
 
-const TABS = [
+const USER_TABS = [
   { label: "Log in", href: "/login" },
   { label: "Tasks", href: "/tasks" },
   // { label: "Form", href: "/form" },
-  { label: "Users", href: "/users" },
-  { label: "Stopwatch", href: "/stopwatch" },
+  // { label: "Stopwatch", href: "/stopwatch" },
 ] as const;
+
+const ADMIN_TABS = [...USER_TABS, { label: "Users", href: "/users" }] as const;
 
 export default function TabNav() {
   const pathname = usePathname();
   const theme = useContext(ThemeContext);
-  const activeIndex = TABS.findIndex((tab) => pathname === tab.href);
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
+
+  // const tabs = isAdmin ? [...ADMIN_TABS] : [...USER_TABS];
+  const tabs = isAdmin ? ADMIN_TABS : USER_TABS;
+
+  const activeIndex = tabs.findIndex((tab) => pathname === tab.href);
 
   return (
     <nav
@@ -32,7 +40,7 @@ export default function TabNav() {
         textColor="inherit"
         centered
       >
-        {TABS.map((tab, index) => (
+        {tabs.map((tab, index) => (
           <Tab
             key={tab.href}
             label={tab.label}
