@@ -26,6 +26,7 @@ const sampleTask: TaskType = {
   date: "2025-01-01",
   userId: 1,
   ownerEmail: "owner@test.com",
+  ownerDeleted: false,
 };
 
 const admin: StoredUser = {

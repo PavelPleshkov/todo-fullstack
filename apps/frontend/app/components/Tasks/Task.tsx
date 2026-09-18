@@ -26,6 +26,7 @@ export interface Task {
   date: string;
   userId: number;
   ownerEmail: string;
+  ownerDeleted: boolean;
 }
 
 export interface TaskProps {
@@ -219,9 +220,16 @@ const Task = memo(function Task({
               style={{
                 display: "block",
                 position: "relative",
-                backgroundColor:
-                  // theme === "dark" ? "#696969" : "var(--foreground)",
-                  theme === "dark" ? "transparent" : "var(--foreground)",
+                backgroundColor: task.ownerDeleted
+                  ? theme === "dark"
+                    ? "rgba(180, 60, 60, 0.28)"
+                    : "rgba(180, 40, 40, 0.12)"
+                  : theme === "dark"
+                    ? "transparent"
+                    : "var(--foreground)",
+                // backgroundColor:
+                //   // theme === "dark" ? "#696969" : "var(--foreground)",
+                //   theme === "dark" ? "transparent" : "var(--foreground)",
                 border: "1px solid rgba(29, 29, 29, 0.24)",
                 borderRadius: "5px",
                 width: "100%",
@@ -273,7 +281,9 @@ const Task = memo(function Task({
                     }}
                     data-testid="task-owner-email"
                   >
-                    {task.ownerEmail}
+                    {task.ownerDeleted
+                      ? `${task.ownerEmail} (deleted)`
+                      : task.ownerEmail}
                   </div>
                   <div
                     style={{
