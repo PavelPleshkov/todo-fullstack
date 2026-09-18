@@ -50,6 +50,19 @@ export class AuthService implements OnModuleInit, OnModuleDestroy {
       role: String(row.role),
     };
   }
+  // check if account is active
+  async assertAccountActive(userId: number): Promise<void> {
+    const res = await this.client.query(
+      `SELECT deleted_at FROM users WHERE id = $1`,
+      [userId],
+    );
+
+    const row = res.rows[0] as Record<string, unknown> | undefined;
+
+    if (!row || row.deleted_at != null) {
+      throw new UnauthorizedException('This account has been deleted');
+    }
+  }
 
   async findAllUsers(): Promise<AuthUser[]> {
     const res = await this.client.query(
@@ -136,6 +149,8 @@ export class AuthService implements OnModuleInit, OnModuleDestroy {
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
+    // check if account is active
+    await this.assertAccountActive(Number(row.id));
 
     return this.toAuthPayload(this.mapRow(row));
   }

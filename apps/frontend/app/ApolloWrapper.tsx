@@ -10,7 +10,9 @@ import {
 import { ApolloProvider } from "@apollo/client/react";
 import { type ReactNode, useMemo } from "react";
 import { AuthProvider } from "./AuthContext";
-import { getToken } from "./lib/auth-storage";
+import { CombinedGraphQLErrors } from "@apollo/client";
+import { ErrorLink } from "@apollo/client/link/error";
+import { clearAuth, getToken } from "./lib/auth-storage";
 
 export function ApolloWrapper({ children }: { children: ReactNode }) {
   const client = useMemo(() => {
@@ -33,11 +35,29 @@ export function ApolloWrapper({ children }: { children: ReactNode }) {
         },
       };
     });
+    // if the account is deleted, clear the auth and redirect to the login page
+    const errorLink = new ErrorLink(({ error }) => {
+      if (!CombinedGraphQLErrors.is(error)) {
+        return;
+      }
+      const deleted = error.errors.some(
+        (graphQLError) =>
+          graphQLError.message === "This account has been deleted",
+      );
+      if (!deleted) {
+        return;
+      }
+      if (!getToken()) {
+        return;
+      }
+      clearAuth();
+      window.location.assign("/login");
+    });
 
     return new ApolloClient({
       cache: new InMemoryCache(),
       // (important) order of links - first authLink adds the token to the headers, then httpLink sends the request
-      link: ApolloLink.from([authLink, httpLink]),
+      link: ApolloLink.from([errorLink, authLink, httpLink]),
     });
   }, []);
 

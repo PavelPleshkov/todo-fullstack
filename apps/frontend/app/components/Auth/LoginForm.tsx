@@ -13,6 +13,7 @@ import {
 } from "@/app/lib/graphql/operations";
 import Btn from "../Btn";
 import { ThemeContext } from "@/app/ThemeContext";
+import { CombinedGraphQLErrors } from "@apollo/client";
 
 const validationSchema = yup.object({
   email: yup.string().email("Invalid email").required("Email is required"),
@@ -84,7 +85,16 @@ export default function LoginForm() {
         });
 
         router.push("/tasks");
-      } catch {
+      } catch (error) {
+        if (
+          CombinedGraphQLErrors.is(error) &&
+          error.errors.some(
+            (e) => e.message === "This account has been deleted",
+          )
+        ) {
+          setFormError("This account has been deleted");
+          return;
+        }
         setFormError(
           isRegister
             ? "Email is already registered"
