@@ -7,7 +7,10 @@ import { useRouter } from "next/navigation";
 import { useContext, useState } from "react";
 import * as yup from "yup";
 import { useAuth } from "@/app/AuthContext";
-import { LOGIN_MUTATION } from "@/app/lib/graphql/operations";
+import {
+  LOGIN_MUTATION,
+  REGISTER_MUTATION,
+} from "@/app/lib/graphql/operations";
 import Btn from "../Btn";
 import { ThemeContext } from "@/app/ThemeContext";
 
@@ -24,9 +27,16 @@ export default function LoginForm() {
 
   const router = useRouter();
   const { setSession } = useAuth();
+
   const [formError, setFormError] = useState<string | null>(null);
 
+  const [mode, setMode] = useState<"login" | "register">("login");
+  const isRegister = mode === "register";
+
   const [loginMutation, { loading }] = useMutation(LOGIN_MUTATION);
+  const [registerMutation, { loading: registerLoading }] =
+    useMutation(REGISTER_MUTATION);
+  const isBusy = loading || registerLoading;
 
   const formik = useFormik({
     initialValues: {
@@ -37,18 +47,33 @@ export default function LoginForm() {
     onSubmit: async (values) => {
       setFormError(null);
       try {
-        const result = await loginMutation({
-          variables: {
-            input: {
-              email: values.email,
-              password: values.password,
-            },
-          },
-        });
+        const input = {
+          email: values.email,
+          password: values.password,
+        };
 
-        const payload = result.data?.login;
+        let payload:
+          | {
+              accessToken: string;
+              user: { id: number; email: string; role: string };
+            }
+          | undefined;
+
+        if (isRegister) {
+          const result = await registerMutation({ variables: { input } });
+          payload = result.data?.register;
+        } else {
+          const result = await loginMutation({ variables: { input } });
+          payload = result.data?.login;
+        }
+        // const result = isRegister
+        //   ? await registerMutation({ variables: { input } })
+        //   : await loginMutation({ variables: { input } });
+
+        // const payload = isRegister ? result.data?.register : result.data?.login;
+
         if (!payload) {
-          setFormError("Login failed");
+          setFormError(isRegister ? "Sign up failed" : "Login failed");
           return;
         }
 
@@ -60,7 +85,11 @@ export default function LoginForm() {
 
         router.push("/tasks");
       } catch {
-        setFormError("Invalid email or password");
+        setFormError(
+          isRegister
+            ? "Email is already registered"
+            : "Invalid email or password",
+        );
       }
     },
   });
@@ -140,7 +169,8 @@ export default function LoginForm() {
           textAlign: "center",
         }}
       >
-        Login
+        {/* {isRegister ? "Sign up" : "Login"} */}
+        Log in / Sign up
       </h1>
 
       <form data-testid="login-form" onSubmit={formik.handleSubmit}>
@@ -188,7 +218,11 @@ export default function LoginForm() {
 
           {formError ? (
             <Grid size={12}>
-              <Typography color="error" data-testid="login-error">
+              <Typography
+                color="error"
+                data-testid="login-error"
+                sx={{ textAlign: "center" }}
+              >
                 {formError}
               </Typography>
             </Grid>
@@ -201,11 +235,27 @@ export default function LoginForm() {
           >
             <Btn
               data-testid="login-submit"
-              type="submit"
+              type="button"
               variant="contained"
-              disabled={loading}
+              disabled={isBusy}
+              onClick={() => {
+                setMode("login");
+                void formik.submitForm();
+              }}
             >
-              {loading ? "Signing in…" : "Sign in"}
+              {isBusy && !isRegister ? "Logging in…" : "Log in"}
+            </Btn>
+            <Btn
+              data-testid="signup-submit"
+              type="button"
+              variant="contained"
+              disabled={isBusy}
+              onClick={() => {
+                setMode("register");
+                void formik.submitForm();
+              }}
+            >
+              {isBusy && isRegister ? "Signing up…" : "Sign up"}
             </Btn>
           </Grid>
         </Grid>

@@ -7,9 +7,10 @@ import { useContext } from "react";
 import { ThemeContext } from "../ThemeContext";
 
 const TABS = [
-  { label: "Login", href: "/login" },
+  { label: "Log in", href: "/login" },
   { label: "Tasks", href: "/tasks" },
   // { label: "Form", href: "/form" },
+  { label: "Users", href: "/users" },
   { label: "Stopwatch", href: "/stopwatch" },
 ] as const;
 
