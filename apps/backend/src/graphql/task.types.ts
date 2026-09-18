@@ -19,6 +19,9 @@ export class Task {
 
   @Field()
   ownerEmail!: string;
+
+  @Field()
+  ownerDeleted!: boolean;
 }
 
 @InputType()

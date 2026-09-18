@@ -30,7 +30,8 @@ export class TasksService implements OnModuleInit, OnModuleDestroy {
     t.date,
     t.deleted,
     t.user_id,
-    u.email AS owner_email
+    u.email AS owner_email,
+    u.deleted_at AS owner_deleted_at
   FROM tasks t
   INNER JOIN users u ON u.id = t.user_id
 `;
@@ -67,6 +68,7 @@ export class TasksService implements OnModuleInit, OnModuleDestroy {
       date: new Date(row.date as string).toLocaleString(),
       userId: Number(row.user_id),
       ownerEmail: String(row.owner_email),
+      ownerDeleted: row.owner_deleted_at != null,
     };
   }
 
