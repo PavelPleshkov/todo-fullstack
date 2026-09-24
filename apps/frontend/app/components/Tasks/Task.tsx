@@ -305,7 +305,7 @@ const Task = memo(function Task({
               data-testid="task-textarea"
               id={task.id.toString()}
               // type="text"
-              rows={5}
+              // rows={5}
               value={selfText}
               autoFocus={isEditable}
               // onKeyDown={(e) => {

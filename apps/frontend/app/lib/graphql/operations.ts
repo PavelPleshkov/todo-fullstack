@@ -22,6 +22,7 @@ export const LOGIN_MUTATION = graphql(`
         id
         email
         role
+        createdAt
       }
     }
   }
@@ -35,7 +36,44 @@ export const REGISTER_MUTATION = graphql(`
         id
         email
         role
+        createdAt
       }
+    }
+  }
+`);
+
+export const DELETE_USER_MUTATION = graphql(`
+  mutation DeleteUser($id: Int!) {
+    deleteUser(id: $id) {
+      id
+      email
+      role
+      createdAt
+      deletedAt
+    }
+  }
+`);
+
+export const RESTORE_USER_MUTATION = graphql(`
+  mutation RestoreUser($id: Int!) {
+    restoreUser(id: $id) {
+      id
+      email
+      role
+      createdAt
+      deletedAt
+    }
+  }
+`);
+
+export const USERS_QUERY = graphql(`
+  query Users {
+    users {
+      id
+      email
+      role
+      createdAt
+      deletedAt
     }
   }
 `);
@@ -181,6 +219,9 @@ export const UNMARK_ALL_MUTATION = graphql(`
 `);
 
 export type {
+  UsersQuery,
+  DeleteUserMutation,
+  RestoreUserMutation,
   ActiveTasksQuery,
   BinTasksQuery,
   CreateTaskMutation,

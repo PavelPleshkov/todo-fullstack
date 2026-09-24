@@ -8,6 +8,8 @@ type AuthPayload {
 }
 
 type AuthUser {
+  createdAt: String!
+  deletedAt: String
   email: String!
   id: Int!
   role: String!
@@ -30,6 +32,7 @@ type MoveCompletedResult {
 
 type Mutation {
   createTask(input: CreateTaskInput!): Task!
+  deleteUser(id: Int!): AuthUser!
   login(input: LoginInput!): AuthPayload!
   markAllActiveTasks(ownerId: Int): [Task!]!
   moveCompletedToBin(ownerId: Int): MoveCompletedResult!
@@ -37,6 +40,7 @@ type Mutation {
   moveTaskToBin(id: Int!): Task!
   permanentlyDeleteTask(id: Int!): Boolean!
   register(input: RegisterInput!): AuthPayload!
+  restoreUser(id: Int!): AuthUser!
   unmarkAllActiveTasks(ownerId: Int): [Task!]!
   updateTask(id: Int!, input: UpdateTaskInput!): Task!
 }

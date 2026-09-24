@@ -4,7 +4,7 @@ import { Grid, TextField, Typography } from "@mui/material";
 import { useMutation } from "@apollo/client/react";
 import { useFormik } from "formik";
 import { useRouter } from "next/navigation";
-import { useContext, useState } from "react";
+import { useContext, useRef, useState } from "react";
 import * as yup from "yup";
 import { useAuth } from "@/app/AuthContext";
 import {
@@ -30,6 +30,8 @@ export default function LoginForm() {
   const { setSession } = useAuth();
 
   const [formError, setFormError] = useState<string | null>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
 
   const [mode, setMode] = useState<"login" | "register">("login");
   const isRegister = mode === "register";
@@ -56,7 +58,12 @@ export default function LoginForm() {
         let payload:
           | {
               accessToken: string;
-              user: { id: number; email: string; role: string };
+              user: {
+                id: number;
+                email: string;
+                role: string;
+                createdAt: string;
+              };
             }
           | undefined;
 
@@ -75,6 +82,8 @@ export default function LoginForm() {
 
         if (!payload) {
           setFormError(isRegister ? "Sign up failed" : "Login failed");
+          emailRef.current?.focus();
+          emailRef.current?.select();
           return;
         }
 
@@ -82,9 +91,10 @@ export default function LoginForm() {
           id: payload.user.id,
           email: payload.user.email,
           role: payload.user.role,
+          createdAt: payload.user.createdAt,
         });
 
-        router.push("/tasks");
+        router.push("/profile");
       } catch (error) {
         if (
           CombinedGraphQLErrors.is(error) &&
@@ -93,6 +103,8 @@ export default function LoginForm() {
           )
         ) {
           setFormError("This account has been deleted");
+          emailRef.current?.focus();
+          emailRef.current?.select();
           return;
         }
         setFormError(
@@ -100,6 +112,8 @@ export default function LoginForm() {
             ? "Email is already registered"
             : "Invalid email or password",
         );
+        passwordRef.current?.focus();
+        passwordRef.current?.select();
       }
     },
   });
@@ -197,6 +211,7 @@ export default function LoginForm() {
           <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3, xl: 2 }}>
             <TextField
               slotProps={slotProps}
+              inputRef={emailRef}
               fullWidth
               data-testid="login-email"
               label="Email"
@@ -213,6 +228,7 @@ export default function LoginForm() {
           <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3, xl: 2 }}>
             <TextField
               slotProps={slotProps}
+              inputRef={passwordRef}
               fullWidth
               data-testid="login-password"
               label="Password"

@@ -7,23 +7,33 @@ import { useContext } from "react";
 import { ThemeContext } from "../ThemeContext";
 import { useAuth } from "../AuthContext";
 
+const DEFAULT_TABS = [{ label: "Log in", href: "/login" }] as const;
+
 const USER_TABS = [
-  { label: "Log in", href: "/login" },
+  // { label: "Log in", href: "/login" },
+  { label: "Profile", href: "/profile" },
   { label: "Tasks", href: "/tasks" },
   // { label: "Form", href: "/form" },
   // { label: "Stopwatch", href: "/stopwatch" },
+  ...DEFAULT_TABS,
 ] as const;
 
-const ADMIN_TABS = [...USER_TABS, { label: "Users", href: "/users" }] as const;
+const ADMIN_TABS = [
+  { label: "Profile", href: "/profile" },
+  { label: "Tasks", href: "/tasks" },
+  { label: "Users", href: "/users" },
+  ...DEFAULT_TABS,
+] as const;
 
 export default function TabNav() {
   const pathname = usePathname();
   const theme = useContext(ThemeContext);
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
+  const isUser = user?.role === "user";
 
   // const tabs = isAdmin ? [...ADMIN_TABS] : [...USER_TABS];
-  const tabs = isAdmin ? ADMIN_TABS : USER_TABS;
+  const tabs = isAdmin ? ADMIN_TABS : isUser ? USER_TABS : DEFAULT_TABS;
 
   const activeIndex = tabs.findIndex((tab) => pathname === tab.href);
 

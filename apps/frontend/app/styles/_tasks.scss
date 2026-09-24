@@ -38,6 +38,8 @@
   padding: 10px 30px 10px 20px;
   resize: vertical;
   min-height: fit-content; */
+  min-block-size: 3lh;
+  field-sizing: content;
   box-shadow:
     0px 2px 4px -1px rgba(0, 0, 0, 0.2),
     0px 4px 5px 0px rgba(0, 0, 0, 0.14),

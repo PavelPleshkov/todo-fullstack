@@ -1,6 +1,15 @@
 .MuiButton-root.btn {
   transition: 0.3s;
 
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+
+    &:hover {
+      cursor: not-allowed;
+    }
+  }
+
   // &:hover {
   //   color: #9c1a1a;
   // }

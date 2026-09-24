@@ -1,7 +1,9 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
+  NotFoundException,
   OnModuleDestroy,
   OnModuleInit,
   UnauthorizedException,
@@ -43,11 +45,33 @@ export class AuthService implements OnModuleInit, OnModuleDestroy {
     await this.client.end();
   }
 
+  private toIsoOrNull(value: unknown): string | null {
+    if (value == null) {
+      return null;
+    }
+    if (value instanceof Date) {
+      return value.toISOString();
+    }
+    if (typeof value === 'string') {
+      return value;
+    }
+    throw new Error('Invalid timestamp value');
+  }
+
   private mapRow(row: Record<string, unknown>): AuthUser {
+    const createdAt = this.toIsoOrNull(row.created_at);
+    const deletedAt = this.toIsoOrNull(row.deleted_at);
+
+    if (createdAt == null) {
+      throw new Error('User row is missing created_at');
+    }
+
     return {
       id: Number(row.id),
       email: String(row.email),
       role: String(row.role),
+      createdAt,
+      deletedAt,
     };
   }
   // check if account is active
@@ -66,10 +90,88 @@ export class AuthService implements OnModuleInit, OnModuleDestroy {
 
   async findAllUsers(): Promise<AuthUser[]> {
     const res = await this.client.query(
-      `SELECT id, email, role FROM users ORDER BY id ASC`,
+      `SELECT id, email, role, created_at, deleted_at FROM users ORDER BY id ASC`,
     );
 
     return res.rows.map((row: Record<string, unknown>) => this.mapRow(row));
+  }
+
+  async softDeleteUser(targetId: number, actorId: number): Promise<AuthUser> {
+    if (targetId === actorId) {
+      throw new ForbiddenException('You can not delete your own account');
+    }
+
+    const existing = await this.client.query(
+      `SELECT id, email, role, created_at, deleted_at FROM users WHERE id = $1`,
+      [targetId],
+    );
+
+    const current = existing.rows[0] as Record<string, unknown> | undefined;
+
+    if (!current) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (current.role === 'admin') {
+      throw new ForbiddenException('Admin account can not be deleted');
+    }
+
+    if (current.deleted_at != null) {
+      throw new BadRequestException('User is already deleted');
+    }
+
+    const updated = await this.client.query(
+      `UPDATE users SET deleted_at = NOW() WHERE id = $1 RETURNING id, email, role, created_at, deleted_at`,
+      [targetId],
+    );
+
+    const row = updated.rows[0] as Record<string, unknown> | undefined;
+
+    if (!row) {
+      throw new NotFoundException('User not found');
+    }
+
+    return this.mapRow(row);
+  }
+
+  async restoreDeletedUser(
+    targetId: number,
+    actorId: number,
+    userRole: string,
+  ): Promise<AuthUser> {
+    if (userRole != 'admin') {
+      if (targetId === actorId) {
+        throw new ForbiddenException('You can not restore your own account');
+      }
+    }
+
+    const existing = await this.client.query(
+      `SELECT id, email, role, created_at, deleted_at FROM users WHERE id = $1`,
+      [targetId],
+    );
+
+    const current = existing.rows[0] as Record<string, unknown> | undefined;
+
+    if (!current) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (current.deleted_at == null) {
+      throw new BadRequestException('User is already restored');
+    }
+
+    const updated = await this.client.query(
+      `UPDATE users SET deleted_at = null WHERE id = $1 RETURNING id, email, role, created_at, deleted_at`,
+      [targetId],
+    );
+
+    const row = updated.rows[0] as Record<string, unknown> | undefined;
+
+    if (!row) {
+      throw new NotFoundException('User not found');
+    }
+
+    return this.mapRow(row);
   }
 
   private normalizeEmail(email: string): string {
@@ -108,11 +210,16 @@ export class AuthService implements OnModuleInit, OnModuleDestroy {
 
     try {
       const res = await this.client.query(
-        `INSERT INTO users (email, password_hash, role) VALUES ($1, $2, 'user') RETURNING id, email, role`,
+        `INSERT INTO users (email, password_hash, role) VALUES ($1, $2, 'user') RETURNING id, email, role, created_at, deleted_at`,
         [normalizedEmail, passwordHash],
       );
 
-      return this.toAuthPayload(this.mapRow(res.rows[0]));
+      const row = res.rows[0] as Record<string, unknown> | undefined;
+      if (!row) {
+        throw new Error('Register did not return a user row');
+      }
+
+      return this.toAuthPayload(this.mapRow(row));
     } catch (error: unknown) {
       if (
         typeof error === 'object' &&
@@ -132,7 +239,7 @@ export class AuthService implements OnModuleInit, OnModuleDestroy {
     this.validateCredentials(normalizedEmail, password);
 
     const res = await this.client.query(
-      `SELECT id, email, role, password_hash FROM users WHERE email = $1`,
+      `SELECT id, email, role, created_at, deleted_at, password_hash FROM users WHERE email = $1`,
       [normalizedEmail],
     );
 

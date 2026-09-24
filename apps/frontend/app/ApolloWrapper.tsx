@@ -36,17 +36,27 @@ export function ApolloWrapper({ children }: { children: ReactNode }) {
       };
     });
     // if the account is deleted, clear the auth and redirect to the login page
-    const errorLink = new ErrorLink(({ error }) => {
+    const errorLink = new ErrorLink(({ error, operation }) => {
+      if (
+        operation.operationName === "Login" ||
+        operation.operationName === "Register"
+      ) {
+        return;
+      }
+
       if (!CombinedGraphQLErrors.is(error)) {
         return;
       }
+
       const deleted = error.errors.some(
         (graphQLError) =>
           graphQLError.message === "This account has been deleted",
       );
+
       if (!deleted) {
         return;
       }
+
       if (!getToken()) {
         return;
       }

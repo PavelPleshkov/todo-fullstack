@@ -10,6 +10,12 @@ export class AuthUser {
 
   @Field()
   role!: string;
+
+  @Field()
+  createdAt!: string;
+
+  @Field(() => String, { nullable: true })
+  deletedAt?: string | null;
 }
 
 @ObjectType()
