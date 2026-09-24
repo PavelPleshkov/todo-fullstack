@@ -2,11 +2,10 @@
 
 import { Grid } from "@mui/material";
 import { useState } from "react";
-// import Header from "../components/Header";
-// import TabNav from "../components//TabNav";
 import { ThemeContext } from "../ThemeContext";
 import dynamic from "next/dynamic";
 
+//fix: skip SSR for Header and TabNav to avoid auth hydration mismatch, load client-only
 const Header = dynamic(() => import("../components/Header"), { ssr: false });
 const TabNav = dynamic(() => import("../components/TabNav"), { ssr: false });
 
