@@ -2,21 +2,58 @@ import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { ThemeContext } from "../ThemeContext";
+import { AuthContext } from "../AuthContext";
 import Header from "./Header";
 import { useState } from "react";
+import { StoredUser } from "../lib/auth-storage";
 
-function HeaderWithTheme() {
-  const [theme, setTheme] = useState("dark");
+const mockPush = jest.fn();
+const mockLogout = jest.fn().mockResolvedValue(undefined);
 
-  return (
-    <ThemeContext value={theme}>
-      <Header setTheme={setTheme} />
-    </ThemeContext>
-  );
+const admin: StoredUser = {
+  id: 1,
+  email: "admin@test.com",
+  role: "admin",
+};
+
+const user: StoredUser = {
+  id: 2,
+  email: "user@test.com",
+  role: "user",
+};
+
+function renderHeader({
+  initialTheme = "dark",
+  authUser = user,
+}: {
+  initialTheme?: string;
+  authUser?: StoredUser | null;
+} = {}) {
+  function HeaderWithProviders() {
+    const [theme, setTheme] = useState(initialTheme);
+
+    return (
+      <AuthContext
+        value={{
+          user: authUser,
+          token: authUser ? "token" : null,
+          isAuthenticated: Boolean(authUser),
+          setSession: jest.fn(),
+          logout: mockLogout,
+        }}
+      >
+        <ThemeContext value={theme}>
+          <Header setTheme={setTheme} />
+        </ThemeContext>
+      </AuthContext>
+    );
+  }
+
+  render(<HeaderWithProviders />);
 }
 
 describe("Header", () => {
-  beforeEach(() => render(<HeaderWithTheme />));
+  beforeEach(() => renderHeader());
   afterEach(() => cleanup());
 
   it("renders header", async () => {
@@ -43,7 +80,7 @@ describe("Header", () => {
   it("theme button has theme-btn and theme-specific classes", () => {
     const themeBtn = screen.getByTestId("theme-btn");
     expect(themeBtn).toHaveClass("theme-btn");
-    expect(themeBtn).toHaveClass("theme-btn-dark");
+    expect(themeBtn).toHaveClass("btn-dark");
   });
 
   it("theme button changes theme", async () => {
@@ -57,13 +94,13 @@ describe("Header", () => {
     await userEvent.click(themeBtn);
 
     expect(header).toHaveClass("header-light");
-    expect(themeBtn).toHaveClass("theme-btn-light");
+    expect(themeBtn).toHaveClass("btn-light");
     expect(themeBtn).toHaveTextContent("Dark");
 
     await userEvent.click(themeBtn);
 
     expect(header).toHaveClass("header-dark");
-    expect(themeBtn).toHaveClass("theme-btn-dark");
+    expect(themeBtn).toHaveClass("btn-dark");
     expect(themeBtn).toHaveTextContent("Light");
   });
 });

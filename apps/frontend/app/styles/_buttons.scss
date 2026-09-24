@@ -1,0 +1,61 @@
+.MuiButton-root.btn {
+  transition: 0.3s;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+
+    &:hover {
+      cursor: not-allowed;
+    }
+  }
+
+  // &:hover {
+  //   color: #9c1a1a;
+  // }
+
+  &.btn-dark {
+    background-color: var(--background);
+    color: var(--foreground);
+    // transition: 0.3s;
+    &:hover {
+      background-color: var(--background);
+      color: #9c1a1a;
+    }
+  }
+
+  &.btn-light {
+    background-color: var(--foreground);
+    color: var(--background);
+    // transition: 0.3s;
+    &:hover {
+      background-color: var(--foreground);
+      color: #9c1a1a;
+    }
+  }
+
+  &.theme-btn {
+    position: fixed !important;
+    right: 10px;
+    top: 10px;
+    z-index: 1100;
+
+    &.btn-dark {
+      background-color: var(--foreground);
+      color: var(--background);
+      &:hover {
+        background-color: var(--foreground);
+        color: #9c1a1a;
+      }
+    }
+
+    &.btn-light {
+      background-color: var(--background);
+      color: var(--foreground);
+      &:hover {
+        background-color: var(--background);
+        color: #9c1a1a;
+      }
+    }
+  }
+}

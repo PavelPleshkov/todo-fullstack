@@ -1,5 +1,5 @@
 import { ThemeContext } from "@/app/ThemeContext";
-import Btn from "./Btn";
+import Btn from "../Btn";
 import { useContext } from "react";
 
 interface SearchProps {

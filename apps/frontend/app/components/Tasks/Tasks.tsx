@@ -20,6 +20,8 @@ import {
 } from "@/app/lib/graphql/operations";
 import { ErrorBoundary, getErrorMessage } from "react-error-boundary";
 import type { FallbackProps } from "react-error-boundary";
+import { useAuth } from "@/app/AuthContext";
+import Link from "next/link";
 
 const Loading = () => {
   return <div style={{ padding: "10px 20px" }}>Loading...</div>;
@@ -81,6 +83,8 @@ const EMPTY_TASKS: TaskType[] = [];
 const Task = lazy(() => import("./Task"));
 
 export default function Tasks() {
+  const { isAuthenticated } = useAuth();
+
   const [sortDirectionActive, setSortDirectionActive] = useState<
     "asc" | "desc"
   >("desc");
@@ -96,7 +100,10 @@ export default function Tasks() {
     loading: activeLoading,
     error: activeError,
     refetch: refetchActive,
-  } = useQuery(ACTIVE_TASKS_QUERY);
+  } = useQuery(ACTIVE_TASKS_QUERY, {
+    skip: !isAuthenticated,
+  });
+
   const tasks: TaskType[] = activeData?.activeTasks ?? EMPTY_TASKS;
 
   // const { data: binData } = useQuery(BIN_TASKS_QUERY, {
@@ -108,8 +115,9 @@ export default function Tasks() {
     error: binError,
     refetch: refetchBin,
   } = useQuery(BIN_TASKS_QUERY, {
-    skip: !isBin,
+    skip: !isAuthenticated || !isBin,
   });
+
   const bin: TaskType[] = binData?.binTasks ?? EMPTY_TASKS;
 
   const listLoading = isBin ? binLoading : activeLoading;
@@ -248,6 +256,20 @@ export default function Tasks() {
   //     console.error("Toggle error: ", error);
   //   }
   // };
+
+  if (!isAuthenticated) {
+    return (
+      <div data-testid="tasks-login-required" style={{ padding: 16 }}>
+        To work with tasks -{" "}
+        <Link
+          href={"/login"}
+          style={{ color: "blue", textDecoration: "underline" }}
+        >
+          login
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <Grid

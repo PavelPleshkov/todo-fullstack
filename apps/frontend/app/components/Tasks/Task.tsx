@@ -4,8 +4,9 @@ import { Delete } from "@mui/icons-material";
 import { Grid } from "@mui/material";
 import { useContext, useState, memo } from "react";
 
-import Btn from "./Btn";
+import Btn from "../Btn";
 import { ThemeContext } from "@/app/ThemeContext";
+import { useAuth } from "@/app/AuthContext";
 
 // import { useApolloClient, useMutation } from "@apollo/client/react";
 import { useApolloClient } from "@apollo/client/react";
@@ -23,6 +24,9 @@ export interface Task {
   text: string;
   isDone: boolean;
   date: string;
+  userId: number;
+  ownerEmail: string;
+  ownerDeleted: boolean;
 }
 
 export interface TaskProps {
@@ -53,12 +57,16 @@ const Task = memo(function Task({
 
   const theme = useContext(ThemeContext);
 
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
+
   // const [updateTaskMut] = useMutation(UPDATE_TASK_MUTATION);
   // const [moveToBinMut] = useMutation(MOVE_TO_BIN_MUTATION);
   // const [permanentlyDeleteMut] = useMutation(PERMANENTLY_DELETE_MUTATION);
 
   //to prevent re-rendering because of the useMutation hook
   const client = useApolloClient();
+
   const toggleTask = async () => {
     if (isBin) return;
     await client.mutate({
@@ -163,15 +171,17 @@ const Task = memo(function Task({
       try {
         // const { data } = await permanentlyDeleteMut({ variables: { id } });
         // await permanentlyDeleteMut({ variables: { id } });
-        await client.mutate({
-          mutation: PERMANENTLY_DELETE_MUTATION,
-          variables: { id },
-          refetchQueries: [{ query: BIN_TASKS_QUERY }],
-        });
-        // if (data?.permanentlyDeleteTask) {
-        //   // setBin(bin.filter((task) => task.id !== id));
-        // await refetchBin();
-        // }
+        if (confirm("Are you sure you want to delete this task?")) {
+          await client.mutate({
+            mutation: PERMANENTLY_DELETE_MUTATION,
+            variables: { id },
+            refetchQueries: [{ query: BIN_TASKS_QUERY }],
+          });
+          // if (data?.permanentlyDeleteTask) {
+          //   // setBin(bin.filter((task) => task.id !== id));
+          // await refetchBin();
+          // }
+        }
       } catch (error) {
         console.log("Delete error: ", error);
       }
@@ -210,7 +220,16 @@ const Task = memo(function Task({
               style={{
                 display: "block",
                 position: "relative",
-                // backgroundColor: task.isDone ? "transparent" : "#363636",
+                backgroundColor: task.ownerDeleted
+                  ? theme === "dark"
+                    ? "rgba(180, 60, 60, 0.28)"
+                    : "rgba(180, 40, 40, 0.12)"
+                  : theme === "dark"
+                    ? "transparent"
+                    : "var(--foreground)",
+                // backgroundColor:
+                //   // theme === "dark" ? "#696969" : "var(--foreground)",
+                //   theme === "dark" ? "transparent" : "var(--foreground)",
                 border: "1px solid rgba(29, 29, 29, 0.24)",
                 borderRadius: "5px",
                 width: "100%",
@@ -256,6 +275,18 @@ const Task = memo(function Task({
                   <div>{task.date}</div>
                   <div
                     style={{
+                      fontSize: 12,
+                      opacity: 0.7,
+                      marginBottom: 4,
+                    }}
+                    data-testid="task-owner-email"
+                  >
+                    {task.ownerDeleted
+                      ? `${task.ownerEmail} (deleted)`
+                      : task.ownerEmail}
+                  </div>
+                  <div
+                    style={{
                       whiteSpace: "pre-wrap",
                       overflow: "hidden",
                       display: "-webkit-box",
@@ -271,9 +302,10 @@ const Task = memo(function Task({
           ) : (
             <textarea
               className={isBin ? "" : "task-textarea"}
+              data-testid="task-textarea"
               id={task.id.toString()}
               // type="text"
-              rows={5}
+              // rows={5}
               value={selfText}
               autoFocus={isEditable}
               // onKeyDown={(e) => {
@@ -284,16 +316,16 @@ const Task = memo(function Task({
               // onBlur={() => {
               // saveTask(task.id);
               // }}
-              onFocus={(e) => {
-                e.target.setSelectionRange(
-                  e.target.value.length,
-                  e.target.value.length,
-                );
-                e.target.scrollTo({
-                  top: e.target.scrollHeight,
-                  behavior: "smooth",
-                });
-              }}
+              // onFocus={(e) => {
+              //   e.target.setSelectionRange(
+              //     e.target.value.length,
+              //     e.target.value.length,
+              //   );
+              //   e.target.scrollTo({
+              //     top: e.target.scrollHeight,
+              //     behavior: "smooth",
+              //   });
+              // }}
               onChange={(e) => {
                 setSelfText(e.target.value);
 
@@ -320,13 +352,33 @@ const Task = memo(function Task({
         </Grid>
         <Grid container direction={"row"} size={{ xs: 3, lg: 4 }} spacing={2}>
           <Grid>
-            <Btn
+            {!isBin ? (
+              <Btn
+                title="Move to bin"
+                onClick={() => deleteTask(task.id)}
+                variant="contained"
+              >
+                <Delete />
+              </Btn>
+            ) : (
+              isAdmin && (
+                <Btn
+                  title="Delete"
+                  onClick={() => deleteTask(task.id)}
+                  variant="contained"
+                >
+                  <Delete />
+                </Btn>
+              )
+            )}
+
+            {/* <Btn
               title={isBin ? "Delete" : "Move to bin"}
               onClick={() => deleteTask(task.id)}
               variant="contained"
             >
               <Delete />
-            </Btn>
+            </Btn> */}
           </Grid>
           <Grid>
             {/* <Btn

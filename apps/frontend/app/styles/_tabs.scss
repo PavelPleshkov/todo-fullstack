@@ -1,0 +1,40 @@
+.tab-nav-dark {
+  background-color: #363636;
+  color: var(--foreground);
+  // border-bottom: 1px solid #363636;
+  // border-bottom: 1px solid #1d1d1d;
+}
+
+.tab-nav-dark .MuiTab-root {
+  color: rgba(243, 242, 242, 0.7);
+}
+
+.tab-nav-dark .Mui-selected {
+  color: var(--foreground);
+}
+
+.tab-nav-dark .MuiTabs-indicator {
+  background-color: var(--foreground) !important;
+  /* height: 3px; */
+  border-radius: 2px 2px 0 0;
+}
+
+.tab-nav-light {
+  background-color: var(--foreground);
+  color: var(--background);
+  // border-bottom: 1px solid #e0e0e0;
+}
+
+.tab-nav-light .MuiTab-root {
+  color: rgba(54, 54, 54, 0.7);
+}
+
+.tab-nav-light .Mui-selected {
+  color: var(--background);
+}
+
+.tab-nav-light .MuiTabs-indicator {
+  background-color: var(--background) !important;
+  /* height: 3px; */
+  border-radius: 2px 2px 0 0;
+}

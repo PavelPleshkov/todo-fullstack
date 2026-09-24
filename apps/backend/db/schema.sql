@@ -1,10 +1,23 @@
 -- Table used by apps/backend/src/tasks.service.ts
 -- Apply once per database; see docs/local-database.md
 
+CREATE TABLE IF NOT EXISTS users (
+  id            SERIAL PRIMARY KEY,
+  email         TEXT NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL,
+  role          TEXT NOT NULL DEFAULT 'user'
+    CHECK (role IN ('user', 'admin')),
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  deleted_at  TIMESTAMPTZ
+);
+
 CREATE TABLE IF NOT EXISTS tasks (
   id          SERIAL PRIMARY KEY,
   text        TEXT NOT NULL,
   isdone      BOOLEAN NOT NULL DEFAULT FALSE,
   deleted     BOOLEAN NOT NULL DEFAULT FALSE,
-  date        TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  date        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  user_id     INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE
 );
+
+CREATE INDEX IF NOT EXISTS tasks_user_id_idx ON tasks (user_id);

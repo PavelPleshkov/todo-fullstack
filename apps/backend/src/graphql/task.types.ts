@@ -3,25 +3,34 @@ import { Field, InputType, Int, ObjectType } from '@nestjs/graphql';
 @ObjectType()
 export class Task {
   @Field(() => Int)
-  id: number;
+  id!: number;
 
   @Field()
-  text: string;
+  text!: string;
 
   @Field()
-  isDone: boolean;
+  isDone!: boolean;
 
   @Field()
-  date: string;
+  date!: string;
+
+  @Field(() => Int)
+  userId!: number;
+
+  @Field()
+  ownerEmail!: string;
+
+  @Field()
+  ownerDeleted!: boolean;
 }
 
 @InputType()
 export class CreateTaskInput {
   @Field()
-  text: string;
+  text!: string;
 
   @Field()
-  isDone: boolean;
+  isDone!: boolean;
 }
 
 @InputType()
@@ -36,8 +45,8 @@ export class UpdateTaskInput {
 @ObjectType()
 export class MoveCompletedResult {
   @Field(() => [Task])
-  moved: Task[];
+  moved!: Task[];
 
   @Field(() => [Task])
-  tasks: Task[];
+  tasks!: Task[];
 }

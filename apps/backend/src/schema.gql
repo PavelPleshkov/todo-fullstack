@@ -2,9 +2,27 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type AuthPayload {
+  accessToken: String!
+  user: AuthUser!
+}
+
+type AuthUser {
+  createdAt: String!
+  deletedAt: String
+  email: String!
+  id: Int!
+  role: String!
+}
+
 input CreateTaskInput {
   isDone: Boolean!
   text: String!
+}
+
+input LoginInput {
+  email: String!
+  password: String!
 }
 
 type MoveCompletedResult {
@@ -14,25 +32,38 @@ type MoveCompletedResult {
 
 type Mutation {
   createTask(input: CreateTaskInput!): Task!
-  markAllActiveTasks: [Task!]!
-  moveCompletedToBin: MoveCompletedResult!
+  deleteUser(id: Int!): AuthUser!
+  login(input: LoginInput!): AuthPayload!
+  markAllActiveTasks(ownerId: Int): [Task!]!
+  moveCompletedToBin(ownerId: Int): MoveCompletedResult!
   moveTaskToActive(id: Int!): Task!
   moveTaskToBin(id: Int!): Task!
   permanentlyDeleteTask(id: Int!): Boolean!
-  unmarkAllActiveTasks: [Task!]!
+  register(input: RegisterInput!): AuthPayload!
+  restoreUser(id: Int!): AuthUser!
+  unmarkAllActiveTasks(ownerId: Int): [Task!]!
   updateTask(id: Int!, input: UpdateTaskInput!): Task!
 }
 
 type Query {
-  activeTasks: [Task!]!
-  binTasks: [Task!]!
+  activeTasks(ownerId: Int): [Task!]!
+  binTasks(ownerId: Int): [Task!]!
+  users: [AuthUser!]!
+}
+
+input RegisterInput {
+  email: String!
+  password: String!
 }
 
 type Task {
   date: String!
   id: Int!
   isDone: Boolean!
+  ownerDeleted: Boolean!
+  ownerEmail: String!
   text: String!
+  userId: Int!
 }
 
 input UpdateTaskInput {
