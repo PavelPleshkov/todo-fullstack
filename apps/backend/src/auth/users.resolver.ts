@@ -26,7 +26,7 @@ export class UsersResolver {
     @Args('id', { type: () => Int }) id: number,
     @CurrentUser() user: JwtPayload,
   ): Promise<AuthUser> {
-    return this.authService.softDeleteUser(id, user.sub);
+    return this.authService.softDeleteUser(id, user.sub, user.role);
   }
 
   @Mutation(() => AuthUser, { name: 'restoreUser' })

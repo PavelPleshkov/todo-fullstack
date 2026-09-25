@@ -12,6 +12,7 @@ import { ConfigService } from '@nestjs/config';
 import { Client } from 'pg';
 import type { Task } from '../graphql/task.types';
 import type { JwtPayload } from '../auth/jwt-payload';
+import { canModifyTask } from '@repo/permissions';
 
 export type UpdateTaskPayload = {
   text?: string;
@@ -117,7 +118,17 @@ export class TasksService implements OnModuleInit, OnModuleDestroy {
       throw new HttpException('Task not found', HttpStatus.NOT_FOUND);
     }
 
-    if (Number(res.rows[0].user_id) !== viewer.sub) {
+    // if (Number(res.rows[0].user_id) !== viewer.sub) {
+    //   throw new HttpException('Task not found', HttpStatus.NOT_FOUND);
+    // }
+    if (
+      !canModifyTask(
+        { id: viewer.sub, role: viewer.role },
+        { ownerId: Number(res.rows[0].user_id) },
+      )
+    ) {
+      // real exception, don't use because user mustn't know that the task with this id exists, better return 404
+      // throw new HttpException('Insufficient permissions: You are not allowed to modify this task', HttpStatus.FORBIDDEN);
       throw new HttpException('Task not found', HttpStatus.NOT_FOUND);
     }
   }

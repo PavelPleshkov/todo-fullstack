@@ -18,6 +18,7 @@ import {
   ACTIVE_TASKS_QUERY,
   BIN_TASKS_QUERY,
 } from "@/app/lib/graphql/operations";
+import { canHardDeleteTask } from "@repo/permissions";
 
 export interface Task {
   id: number;
@@ -58,7 +59,7 @@ const Task = memo(function Task({
   const theme = useContext(ThemeContext);
 
   const { user } = useAuth();
-  const isAdmin = user?.role === "admin";
+  // const isAdmin = user?.role === "admin";
 
   // const [updateTaskMut] = useMutation(UPDATE_TASK_MUTATION);
   // const [moveToBinMut] = useMutation(MOVE_TO_BIN_MUTATION);
@@ -361,7 +362,9 @@ const Task = memo(function Task({
                 <Delete />
               </Btn>
             ) : (
-              isAdmin && (
+              // isAdmin && (
+              user &&
+              canHardDeleteTask(user, { ownerId: task.userId }) && (
                 <Btn
                   title="Delete"
                   onClick={() => deleteTask(task.id)}

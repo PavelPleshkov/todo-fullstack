@@ -15,11 +15,16 @@ import Btn from "../Btn";
 import { useContext, useState } from "react";
 import { ThemeContext } from "@/app/ThemeContext";
 import { CombinedGraphQLErrors } from "@apollo/client";
+import {
+  canAccessUsers,
+  canSoftDeleteUser,
+  canRestoreUser,
+} from "@repo/permissions";
 
 export default function Users() {
   const theme = useContext(ThemeContext);
   const { user, isAuthenticated } = useAuth();
-  const isAdmin = user?.role === "admin";
+  // const isAdmin = user?.role === "admin";
 
   const client = useApolloClient();
 
@@ -31,18 +36,22 @@ export default function Users() {
     return fallback;
   };
 
+  const canOpenUsers = Boolean(user && canAccessUsers(user));
+
   const { data, loading, error } = useQuery(USERS_QUERY, {
-    skip: !isAuthenticated || !isAdmin,
+    // skip: !isAuthenticated || !isAdmin,
+    skip: !isAuthenticated || !canOpenUsers,
   });
   const users = data?.users ?? [];
 
-  if (!isAuthenticated || !isAdmin) {
+  // if (!isAuthenticated || !isAdmin) {
+  if (!isAuthenticated || !canOpenUsers) {
     return (
       <div
         data-testid="users-forbidden"
         style={{ padding: "10px", textAlign: "center" }}
       >
-        <div style={{ padding: "10px" }}>No access. Only for admins.</div>
+        <div style={{ padding: "10px" }}>Forbidden: No access.</div>
         <div style={{ padding: "10px" }}>
           {isAuthenticated && (
             <Link
@@ -169,12 +178,16 @@ export default function Users() {
                     : "—"}
                 </td>
                 <td style={{ padding: 8 }}>
-                  {row.id !== user?.id && row.role !== "admin" && (
-                    <Stack
-                      direction={{ xs: "column", md: "row" }}
-                      alignItems="center"
-                      spacing={2}
-                    >
+                  {/* {user &&
+                    canSoftDeleteUser(user, row) &&
+                    canRestoreUser(user, row) && ( */}
+                  {/* {row.id !== user?.id && row.role !== "admin" && ( */}
+                  <Stack
+                    direction={{ xs: "column", md: "row" }}
+                    alignItems="center"
+                    spacing={2}
+                  >
+                    {user && canSoftDeleteUser(user, row) && (
                       <Btn
                         variant="contained"
                         size="small"
@@ -183,16 +196,21 @@ export default function Users() {
                       >
                         Del
                       </Btn>
-                      <Btn
-                        variant="contained"
-                        size="small"
-                        disabled={!row.deletedAt}
-                        onClick={() => restoreUser(row.id, row.email)}
-                      >
-                        Restore
-                      </Btn>
-                    </Stack>
-                  )}
+                    )}
+                    {user &&
+                      canSoftDeleteUser(user, row) &&
+                      canRestoreUser(user, row) && (
+                        <Btn
+                          variant="contained"
+                          size="small"
+                          disabled={!row.deletedAt}
+                          onClick={() => restoreUser(row.id, row.email)}
+                        >
+                          Restore
+                        </Btn>
+                      )}
+                  </Stack>
+                  {/* )} */}
                 </td>
               </tr>
             ))}
