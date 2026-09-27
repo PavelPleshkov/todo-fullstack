@@ -79,8 +79,8 @@ export const USERS_QUERY = graphql(`
 `);
 
 export const ACTIVE_TASKS_QUERY = graphql(`
-  query ActiveTasks {
-    activeTasks {
+  query ActiveTasks($ownerId: Int, $ownerRole: String) {
+    activeTasks(ownerId: $ownerId, ownerRole: $ownerRole) {
       id
       text
       isDone
@@ -88,13 +88,14 @@ export const ACTIVE_TASKS_QUERY = graphql(`
       userId
       ownerEmail
       ownerDeleted
+      ownerRole
     }
   }
 `);
 
 export const BIN_TASKS_QUERY = graphql(`
-  query BinTasks {
-    binTasks {
+  query BinTasks($ownerId: Int, $ownerRole: String) {
+    binTasks(ownerId: $ownerId, ownerRole: $ownerRole) {
       id
       text
       isDone
@@ -102,6 +103,7 @@ export const BIN_TASKS_QUERY = graphql(`
       userId
       ownerEmail
       ownerDeleted
+      ownerRole
     }
   }
 `);
@@ -116,6 +118,7 @@ export const CREATE_TASK_MUTATION = graphql(`
       userId
       ownerEmail
       ownerDeleted
+      ownerRole
     }
   }
 `);
@@ -130,6 +133,7 @@ export const UPDATE_TASK_MUTATION = graphql(`
       userId
       ownerEmail
       ownerDeleted
+      ownerRole
     }
   }
 `);
@@ -155,6 +159,7 @@ export const MOVE_TO_ACTIVE_MUTATION = graphql(`
       userId
       ownerEmail
       ownerDeleted
+      ownerRole
     }
   }
 `);
@@ -166,8 +171,8 @@ export const PERMANENTLY_DELETE_MUTATION = graphql(`
 `);
 
 export const MOVE_COMPLETED_MUTATION = graphql(`
-  mutation MoveCompletedToBin {
-    moveCompletedToBin {
+  mutation MoveCompletedToBin($ownerId: Int, $ownerRole: String) {
+    moveCompletedToBin(ownerId: $ownerId, ownerRole: $ownerRole) {
       moved {
         id
         text
@@ -176,6 +181,7 @@ export const MOVE_COMPLETED_MUTATION = graphql(`
         userId
         ownerEmail
         ownerDeleted
+        ownerRole
       }
       tasks {
         id
@@ -185,14 +191,15 @@ export const MOVE_COMPLETED_MUTATION = graphql(`
         userId
         ownerEmail
         ownerDeleted
+        ownerRole
       }
     }
   }
 `);
 
 export const MARK_ALL_MUTATION = graphql(`
-  mutation MarkAllActiveTasks {
-    markAllActiveTasks {
+  mutation MarkAllActiveTasks($ownerId: Int, $ownerRole: String) {
+    markAllActiveTasks(ownerId: $ownerId, ownerRole: $ownerRole) {
       id
       text
       isDone
@@ -200,13 +207,14 @@ export const MARK_ALL_MUTATION = graphql(`
       userId
       ownerEmail
       ownerDeleted
+      ownerRole
     }
   }
 `);
 
 export const UNMARK_ALL_MUTATION = graphql(`
-  mutation UnmarkAllActiveTasks {
-    unmarkAllActiveTasks {
+  mutation UnmarkAllActiveTasks($ownerId: Int, $ownerRole: String) {
+    unmarkAllActiveTasks(ownerId: $ownerId, ownerRole: $ownerRole) {
       id
       text
       isDone
@@ -214,6 +222,7 @@ export const UNMARK_ALL_MUTATION = graphql(`
       userId
       ownerEmail
       ownerDeleted
+      ownerRole
     }
   }
 `);

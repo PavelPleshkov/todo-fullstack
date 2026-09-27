@@ -94,7 +94,7 @@ export default function LoginForm() {
           createdAt: payload.user.createdAt,
         });
 
-        router.push("/profile");
+        router.push("/tasks");
       } catch (error) {
         if (
           CombinedGraphQLErrors.is(error) &&

@@ -14,24 +14,24 @@ export class UsersResolver {
 
   @Query(() => [AuthUser], { name: 'users' })
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
-  users(): Promise<AuthUser[]> {
-    return this.authService.findAllUsers();
+  @Roles('admin', 'manager')
+  users(@CurrentUser() user: JwtPayload): Promise<AuthUser[]> {
+    return this.authService.findAllUsers({ id: user.sub, role: user.role });
   }
 
   @Mutation(() => AuthUser, { name: 'deleteUser' })
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles('admin', 'manager')
   deleteUser(
     @Args('id', { type: () => Int }) id: number,
     @CurrentUser() user: JwtPayload,
   ): Promise<AuthUser> {
-    return this.authService.softDeleteUser(id, user.sub);
+    return this.authService.softDeleteUser(id, user.sub, user.role);
   }
 
   @Mutation(() => AuthUser, { name: 'restoreUser' })
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles('admin', 'manager')
   restoreUser(
     @Args('id', { type: () => Int }) id: number,
     @CurrentUser() user: JwtPayload,

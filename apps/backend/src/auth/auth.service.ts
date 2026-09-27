@@ -13,6 +13,11 @@ import * as bcrypt from 'bcrypt';
 import { Client } from 'pg';
 import { JwtService } from '@nestjs/jwt';
 import type { AuthUser, AuthPayload } from '../graphql/auth.types';
+import {
+  canRestoreUser,
+  canSeeUser,
+  canSoftDeleteUser,
+} from '@repo/permissions';
 
 @Injectable()
 export class AuthService implements OnModuleInit, OnModuleDestroy {
@@ -88,15 +93,21 @@ export class AuthService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  async findAllUsers(): Promise<AuthUser[]> {
+  async findAllUsers(actor: { id: number; role: string }): Promise<AuthUser[]> {
     const res = await this.client.query(
-      `SELECT id, email, role, created_at, deleted_at FROM users ORDER BY id ASC`,
+      `SELECT id, email, role, created_at, deleted_at FROM users ORDER BY role ASC, id ASC`,
     );
 
-    return res.rows.map((row: Record<string, unknown>) => this.mapRow(row));
+    return res.rows
+      .map((row: Record<string, unknown>) => this.mapRow(row))
+      .filter((row) => canSeeUser(actor, row));
   }
 
-  async softDeleteUser(targetId: number, actorId: number): Promise<AuthUser> {
+  async softDeleteUser(
+    targetId: number,
+    actorId: number,
+    actorRole: string,
+  ): Promise<AuthUser> {
     if (targetId === actorId) {
       throw new ForbiddenException('You can not delete your own account');
     }
@@ -112,9 +123,20 @@ export class AuthService implements OnModuleInit, OnModuleDestroy {
       throw new NotFoundException('User not found');
     }
 
-    if (current.role === 'admin') {
-      throw new ForbiddenException('Admin account can not be deleted');
+    if (
+      !canSoftDeleteUser(
+        { id: actorId, role: actorRole },
+        { id: Number(current.id), role: String(current.role) },
+      )
+    ) {
+      throw new ForbiddenException(
+        'Insufficient permissions: You are not allowed to delete this account',
+      );
     }
+
+    // if (current.role === 'admin') {
+    //   throw new ForbiddenException('Admin account can not be deleted');
+    // }
 
     if (current.deleted_at != null) {
       throw new BadRequestException('User is already deleted');
@@ -137,9 +159,9 @@ export class AuthService implements OnModuleInit, OnModuleDestroy {
   async restoreDeletedUser(
     targetId: number,
     actorId: number,
-    userRole: string,
+    actorRole: string,
   ): Promise<AuthUser> {
-    if (userRole != 'admin') {
+    if (actorRole != 'admin') {
       if (targetId === actorId) {
         throw new ForbiddenException('You can not restore your own account');
       }
@@ -154,6 +176,17 @@ export class AuthService implements OnModuleInit, OnModuleDestroy {
 
     if (!current) {
       throw new NotFoundException('User not found');
+    }
+
+    if (
+      !canRestoreUser(
+        { id: actorId, role: actorRole },
+        { id: Number(current.id), role: String(current.role) },
+      )
+    ) {
+      throw new ForbiddenException(
+        'Insufficient permissions: You are not allowed to restore this account',
+      );
     }
 
     if (current.deleted_at == null) {

@@ -6,6 +6,7 @@ import { Tab, Tabs } from "@mui/material";
 import { useContext } from "react";
 import { ThemeContext } from "../ThemeContext";
 import { useAuth } from "../AuthContext";
+import { canAccessUsers } from "@repo/permissions";
 
 const DEFAULT_TABS = [{ label: "Log in", href: "/login" }] as const;
 
@@ -29,11 +30,18 @@ export default function TabNav() {
   const pathname = usePathname();
   const theme = useContext(ThemeContext);
   const { user } = useAuth();
-  const isAdmin = user?.role === "admin";
-  const isUser = user?.role === "user";
+  // const isAdmin = user?.role === "admin";
+  // const isUser = user?.role === "user";
 
   // const tabs = isAdmin ? [...ADMIN_TABS] : [...USER_TABS];
-  const tabs = isAdmin ? ADMIN_TABS : isUser ? USER_TABS : DEFAULT_TABS;
+  // const tabs = isAdmin ? ADMIN_TABS : isUser ? USER_TABS : DEFAULT_TABS;
+  const tabs = !user
+    ? DEFAULT_TABS
+    : canAccessUsers(user)
+      ? ADMIN_TABS
+      : user.role === "user"
+        ? USER_TABS
+        : DEFAULT_TABS;
 
   const activeIndex = tabs.findIndex((tab) => pathname === tab.href);
 

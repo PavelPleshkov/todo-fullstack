@@ -23,8 +23,10 @@ export class TasksResolver {
     @CurrentUser() user: JwtPayload,
     @Args('ownerId', { type: () => Int, nullable: true })
     ownerId?: number | null,
+    @Args('ownerRole', { type: () => String, nullable: true })
+    ownerRole?: string | null,
   ): Promise<Task[]> {
-    return this.tasksService.findActive(user, ownerId);
+    return this.tasksService.findActive(user, ownerId, ownerRole);
   }
 
   @Query(() => [Task], { name: 'binTasks' })
@@ -33,8 +35,10 @@ export class TasksResolver {
     @CurrentUser() user: JwtPayload,
     @Args('ownerId', { type: () => Int, nullable: true })
     ownerId?: number | null,
+    @Args('ownerRole', { type: () => String, nullable: true })
+    ownerRole?: string | null,
   ): Promise<Task[]> {
-    return this.tasksService.findBin(user, ownerId);
+    return this.tasksService.findBin(user, ownerId, ownerRole);
   }
 
   @Mutation(() => Task)
@@ -52,7 +56,12 @@ export class TasksResolver {
       user.role,
     );
 
-    return this.tasksService.create(input.text, input.isDone, user.sub);
+    return this.tasksService.create(
+      input.text,
+      input.isDone,
+      user,
+      input.ownerId,
+    );
   }
 
   @Mutation(() => Task)
@@ -76,11 +85,12 @@ export class TasksResolver {
 
   @Mutation(() => Boolean)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles('admin', 'manager')
   permanentlyDeleteTask(
     @Args('id', { type: () => Int }) id: number,
+    @CurrentUser() user: JwtPayload,
   ): Promise<boolean> {
-    return this.tasksService.permanentlyDeleteFromBin(id);
+    return this.tasksService.permanentlyDeleteFromBin(id, user);
   }
 
   @Mutation(() => Task)
@@ -98,8 +108,10 @@ export class TasksResolver {
     @CurrentUser() user: JwtPayload,
     @Args('ownerId', { type: () => Int, nullable: true })
     ownerId?: number | null,
+    @Args('ownerRole', { type: () => String, nullable: true })
+    ownerRole?: string | null,
   ): Promise<MoveCompletedResult> {
-    return this.tasksService.moveCompletedToBin(user, ownerId);
+    return this.tasksService.moveCompletedToBin(user, ownerId, ownerRole);
   }
 
   @Mutation(() => [Task])
@@ -108,8 +120,10 @@ export class TasksResolver {
     @CurrentUser() user: JwtPayload,
     @Args('ownerId', { type: () => Int, nullable: true })
     ownerId?: number | null,
+    @Args('ownerRole', { type: () => String, nullable: true })
+    ownerRole?: string | null,
   ): Promise<Task[]> {
-    return this.tasksService.markAll(user, ownerId);
+    return this.tasksService.markAll(user, ownerId, ownerRole);
   }
 
   @Mutation(() => [Task])
@@ -118,7 +132,9 @@ export class TasksResolver {
     @CurrentUser() user: JwtPayload,
     @Args('ownerId', { type: () => Int, nullable: true })
     ownerId?: number | null,
+    @Args('ownerRole', { type: () => String, nullable: true })
+    ownerRole?: string | null,
   ): Promise<Task[]> {
-    return this.tasksService.unmarkAll(user, ownerId);
+    return this.tasksService.unmarkAll(user, ownerId, ownerRole);
   }
 }

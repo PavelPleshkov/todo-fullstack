@@ -18,6 +18,7 @@ import {
   ACTIVE_TASKS_QUERY,
   BIN_TASKS_QUERY,
 } from "@/app/lib/graphql/operations";
+import { canHardDeleteTask } from "@repo/permissions";
 
 export interface Task {
   id: number;
@@ -27,6 +28,7 @@ export interface Task {
   userId: number;
   ownerEmail: string;
   ownerDeleted: boolean;
+  ownerRole: string;
 }
 
 export interface TaskProps {
@@ -39,6 +41,7 @@ export interface TaskProps {
   isBin: boolean;
   // refetchActive: () => Promise<unknown>;
   // refetchBin: () => Promise<unknown>;
+  taskQueryVars: { ownerId: number | null; ownerRole: string | null };
 }
 
 const Task = memo(function Task({
@@ -49,6 +52,7 @@ const Task = memo(function Task({
   // bin,
   // setBin,
   isBin,
+  taskQueryVars,
   // refetchActive,
   // refetchBin,
 }: TaskProps): React.ReactNode {
@@ -58,7 +62,7 @@ const Task = memo(function Task({
   const theme = useContext(ThemeContext);
 
   const { user } = useAuth();
-  const isAdmin = user?.role === "admin";
+  // const isAdmin = user?.role === "admin";
 
   // const [updateTaskMut] = useMutation(UPDATE_TASK_MUTATION);
   // const [moveToBinMut] = useMutation(MOVE_TO_BIN_MUTATION);
@@ -106,7 +110,9 @@ const Task = memo(function Task({
         await client.mutate({
           mutation: UPDATE_TASK_MUTATION,
           variables: { id, input: { text: selfText } },
-          refetchQueries: [{ query: ACTIVE_TASKS_QUERY }],
+          refetchQueries: [
+            { query: ACTIVE_TASKS_QUERY, variables: taskQueryVars },
+          ],
         });
         // await updateTaskMut({ variables: { id, input: { text: selfText } } });
 
@@ -154,8 +160,8 @@ const Task = memo(function Task({
           mutation: MOVE_TO_BIN_MUTATION,
           variables: { id },
           refetchQueries: [
-            { query: ACTIVE_TASKS_QUERY },
-            { query: BIN_TASKS_QUERY },
+            { query: ACTIVE_TASKS_QUERY, variables: taskQueryVars },
+            { query: BIN_TASKS_QUERY, variables: taskQueryVars },
           ],
         });
         // if (data?.moveTaskToBin) {
@@ -175,7 +181,9 @@ const Task = memo(function Task({
           await client.mutate({
             mutation: PERMANENTLY_DELETE_MUTATION,
             variables: { id },
-            refetchQueries: [{ query: BIN_TASKS_QUERY }],
+            refetchQueries: [
+              { query: BIN_TASKS_QUERY, variables: taskQueryVars },
+            ],
           });
           // if (data?.permanentlyDeleteTask) {
           //   // setBin(bin.filter((task) => task.id !== id));
@@ -194,8 +202,8 @@ const Task = memo(function Task({
         mutation: MOVE_TO_ACTIVE_MUTATION,
         variables: { id },
         refetchQueries: [
-          { query: ACTIVE_TASKS_QUERY },
-          { query: BIN_TASKS_QUERY },
+          { query: ACTIVE_TASKS_QUERY, variables: taskQueryVars },
+          { query: BIN_TASKS_QUERY, variables: taskQueryVars },
         ],
       });
     } catch (error) {
@@ -361,7 +369,12 @@ const Task = memo(function Task({
                 <Delete />
               </Btn>
             ) : (
-              isAdmin && (
+              // isAdmin && (
+              user &&
+              canHardDeleteTask(user, {
+                ownerId: task.userId,
+                ownerRole: task.ownerRole,
+              }) && (
                 <Btn
                   title="Delete"
                   onClick={() => deleteTask(task.id)}

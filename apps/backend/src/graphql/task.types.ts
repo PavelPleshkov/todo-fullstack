@@ -22,6 +22,9 @@ export class Task {
 
   @Field()
   ownerDeleted!: boolean;
+
+  @Field()
+  ownerRole!: string;
 }
 
 @InputType()
@@ -31,6 +34,9 @@ export class CreateTaskInput {
 
   @Field()
   isDone!: boolean;
+
+  @Field(() => Int, { nullable: true })
+  ownerId?: number | null;
 }
 
 @InputType()

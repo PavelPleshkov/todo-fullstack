@@ -2,7 +2,7 @@
 
 // import { useMutation, useQuery } from "@apollo/client/react";
 import { useQuery } from "@apollo/client/react";
-import { Grid } from "@mui/material";
+import { Grid, Select, Stack } from "@mui/material";
 import {
   lazy,
   Suspense,
@@ -10,6 +10,7 @@ import {
   useDeferredValue,
   useMemo,
   useState,
+  useContext,
 } from "react";
 import AddTask from "./AddTask";
 import Search from "./Search";
@@ -17,10 +18,13 @@ import type { Task as TaskType } from "./Task";
 import {
   ACTIVE_TASKS_QUERY,
   BIN_TASKS_QUERY,
+  USERS_QUERY,
 } from "@/app/lib/graphql/operations";
+import { canAccessUsers } from "@repo/permissions";
 import { ErrorBoundary, getErrorMessage } from "react-error-boundary";
 import type { FallbackProps } from "react-error-boundary";
 import { useAuth } from "@/app/AuthContext";
+import { ThemeContext } from "@/app/ThemeContext";
 import Link from "next/link";
 
 const Loading = () => {
@@ -82,8 +86,66 @@ const EMPTY_TASKS: TaskType[] = [];
 
 const Task = lazy(() => import("./Task"));
 
+export type TaskScopeKey =
+  | "visible"
+  | "self"
+  | "role:user"
+  | "role:manager"
+  | `user:${number}`;
+
+export function toTaskQueryVars(
+  scope: TaskScopeKey,
+  viewerId: number,
+): { ownerId: number | null; ownerRole: string | null } {
+  if (scope === "self") {
+    return { ownerId: viewerId, ownerRole: null };
+  }
+
+  if (scope === "role:user" || scope === "role:manager") {
+    return {
+      ownerId: null,
+      ownerRole: scope === "role:user" ? "user" : "manager",
+    };
+  }
+
+  if (scope.startsWith("user:")) {
+    return { ownerId: Number(scope.slice("user:".length)), ownerRole: null };
+  }
+
+  return { ownerId: null, ownerRole: null };
+}
+
+function newTaskForLabel(
+  scope: TaskScopeKey,
+  people: { id: number; email: string; deletedAt?: string | null }[],
+): string {
+  if (!scope.startsWith("user:")) {
+    return "you";
+  }
+
+  const id = Number(scope.slice("user:".length));
+  const row = people.find((person) => person.id === id);
+
+  if (!row) return "you";
+
+  return row.deletedAt ? `${row.email} (deleted)` : row.email;
+}
+
 export default function Tasks() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const theme = useContext(ThemeContext);
+
+  const [taskScope, setTaskScope] = useState<TaskScopeKey>("visible");
+
+  const taskQueryVars = toTaskQueryVars(taskScope, user?.id ?? 0);
+
+  const canPickScope = Boolean(user && canAccessUsers(user));
+  const { data: usersData } = useQuery(USERS_QUERY, {
+    skip: !isAuthenticated || !canPickScope,
+  });
+  const people = usersData?.users ?? [];
+  const managers = people.filter((person) => person.role === "manager");
+  const users = people.filter((person) => person.role === "user");
 
   const [sortDirectionActive, setSortDirectionActive] = useState<
     "asc" | "desc"
@@ -102,6 +164,8 @@ export default function Tasks() {
     refetch: refetchActive,
   } = useQuery(ACTIVE_TASKS_QUERY, {
     skip: !isAuthenticated,
+    variables: taskQueryVars,
+    fetchPolicy: "cache-and-network",
   });
 
   const tasks: TaskType[] = activeData?.activeTasks ?? EMPTY_TASKS;
@@ -116,6 +180,8 @@ export default function Tasks() {
     refetch: refetchBin,
   } = useQuery(BIN_TASKS_QUERY, {
     skip: !isAuthenticated || !isBin,
+    variables: taskQueryVars,
+    fetchPolicy: "cache-and-network",
   });
 
   const bin: TaskType[] = binData?.binTasks ?? EMPTY_TASKS;
@@ -290,6 +356,10 @@ export default function Tasks() {
         // setBin={setBin}
         isBin={isBin}
         setIsBin={setIsBin}
+        canPickScope={canPickScope}
+        // taskScope={taskScope}
+        taskQueryVars={taskQueryVars}
+        newTaskFor={newTaskForLabel(taskScope, people)}
         // refetchActive={refetchActive}
         // refetchBin={refetchBin}
       />
@@ -300,9 +370,75 @@ export default function Tasks() {
         size={12}
         sx={{ paddingBottom: "20px" }}
       >
-        <h1 style={{ margin: "0 10px", padding: "10px 10px" }}>
-          {!isBin ? "Tasks" : sourceTasks.length ? "Bin" : "Bin is empty"}
-        </h1>
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          alignItems={{ xs: "stretch", sm: "center" }}
+          spacing={2}
+          padding={"10px"}
+        >
+          <h1 style={{ margin: "0 10px", padding: "10px 0px" }}>
+            {!isBin ? "Tasks" : sourceTasks.length ? "Bin" : "Bin is empty"}
+          </h1>
+          {canPickScope && (
+            <Select
+              native
+              value={taskScope}
+              onChange={(event) =>
+                setTaskScope(event.target.value as TaskScopeKey)
+              }
+              inputProps={{ "aria-label": "Whose tasks" }}
+              sx={{
+                color: "inherit",
+                // "& .MuiNativeSelect-select": { color: "inherit" },
+                "& .MuiSvgIcon-root": { color: "inherit" },
+                "& option": {
+                  color: "#1d1d1d",
+                  backgroundColor: "#ffffff",
+                },
+                "& .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#1d1d1d",
+                },
+                "&:hover .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#1d1d1d",
+                },
+                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                  borderColor:
+                    theme === "dark"
+                      ? "var(--foreground)"
+                      : "var(--background)",
+                  borderWidth: "2px",
+                },
+                "& .MuiNativeSelect-select:focus": {
+                  backgroundColor: "transparent",
+                },
+              }}
+            >
+              <option value="self">My tasks</option>
+              <option value="visible">All tasks</option>
+
+              {user?.role === "admin" && (
+                <optgroup label="Managers">
+                  <option value="role:manager">All managers</option>
+                  {managers.map((row) => (
+                    <option key={row.id} value={`user:${row.id}`}>
+                      {row.deletedAt ? `${row.email} (deleted)` : row.email}
+                    </option>
+                  ))}
+                </optgroup>
+              )}
+
+              <optgroup label="Users">
+                <option value="role:user">All users</option>
+                {users.map((row) => (
+                  <option key={row.id} value={`user:${row.id}`}>
+                    {row.deletedAt ? `${row.email} (deleted)` : row.email}
+                  </option>
+                ))}
+              </optgroup>
+            </Select>
+          )}
+        </Stack>
+
         <Grid
           container
           direction={{ xs: "column", sm: "row" }}
@@ -334,7 +470,14 @@ export default function Tasks() {
               {showedTasks.length ? (
                 <ul>
                   {showedTasks.map((task: TaskType) => {
-                    return <Task task={task} key={task.id} isBin={isBin} />;
+                    return (
+                      <Task
+                        task={task}
+                        key={task.id}
+                        isBin={isBin}
+                        taskQueryVars={taskQueryVars}
+                      />
+                    );
                   })}
                 </ul>
               ) : sourceTasks.length === 0 ? (

@@ -32,10 +32,15 @@ export default function Header({ setTheme }: HeaderProps): React.ReactNode {
             <Icon className="header-title-icon" fontSize="small">
               star
             </Icon>
-            <span className="header-title-text">
+            <span className="header-title-text">Task Manager</span>
+            {/* <span className="header-title-text">
               React, TS, Next.js, Nest.js, PostgreSQL, Formik with Yup, RTL,
               Jest, GraphQL, AI, App Router, optimization, Auth
-            </span>
+            </span> */}
+          </span>
+          <span className="header-title-text">
+            React, TS, Next.js, Nest.js, PostgreSQL, Formik with Yup, RTL, Jest,
+            GraphQL, AI, App Router, optimization, Auth
           </span>
         </h1>
 
