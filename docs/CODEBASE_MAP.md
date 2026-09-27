@@ -57,7 +57,7 @@ apps/frontend/app/
 │   ├── login/page.tsx
 │   ├── profile/page.tsx
 │   ├── tasks/page.tsx
-│   ├── users/page.tsx         # admin (and later manager) Users table
+│   ├── users/page.tsx         # Users table (admin and manager)
 │   ├── form/page.tsx          # demo Formik page (not in default tabs)
 │   └── stopwatch/page.tsx     # demo (not in default tabs)
 │
@@ -68,7 +68,7 @@ apps/frontend/app/
 │   ├── Auth/LoginForm.tsx     # login + register
 │   ├── Profile/Profile.tsx
 │   ├── Users/Users.tsx
-│   ├── Tasks/                 # Tasks, Task, AddTask, Search
+│   ├── Tasks/                 # Tasks (scope select), Task, AddTask, Search
 │   ├── Form/
 │   └── Stopwatch/
 │
@@ -109,9 +109,15 @@ RootLayout (app/layout.tsx, Server)
 
 ### Navigation
 
-- `TabNav.tsx`: guest → Log in; `role=user` → Profile, Tasks, Log in; `canAccessUsers` (admin, and later manager) → plus Users.
+- `TabNav.tsx`: guest → Log in; `role=user` → Profile, Tasks, Log in; `canAccessUsers` (admin or manager) → plus Users.
 - `next/link` + MUI `Tab`; active tab from `usePathname()`.
 - Switching tabs unmounts the previous page (Stopwatch/Form reset; Apollo cache persists).
+
+### Tasks UI
+
+- State `taskScope` in `Tasks.tsx` maps to GraphQL `ownerId` / `ownerRole` (`toTaskQueryVars`). Staff load `USERS_QUERY` for select options.
+- `activeTasks` / `binTasks` use `fetchPolicy: "cache-and-network"` so changing the select refetches (Apollo otherwise keeps a stale list per variable set).
+- Card mutations refetch those queries with the **same** variables. Scope args belong on the list refetch, not on `updateTask` / `moveTaskToBin` / etc.
 
 ### Auth on the client
 
@@ -141,13 +147,21 @@ RootLayout (app/layout.tsx, Server)
 
 - Public: `login`, `register` (new accounts get `role=user`). bcrypt passwords.
 - JWT payload: `sub`, `email`, `role`. Guard rejects deleted users (`users.deleted_at`) immediately.
-- Coarse route gate: `@UseGuards(JwtAuthGuard, RolesGuard)` + `@Roles('admin')` on Users queries/mutations and `permanentlyDeleteTask`.
-- Object rules: `@repo/permissions` in `auth.service.ts` (`canSoftDeleteUser`, `canRestoreUser`) and `tasks.service.ts` (`canModifyTask`). Failed task access is returned as **404** (do not leak that the id exists).
+- Coarse route gate: `@UseGuards(JwtAuthGuard, RolesGuard)` + `@Roles('admin', 'manager')` on Users queries/mutations and `permanentlyDeleteTask`.
+- Object rules: `@repo/permissions` in `auth.service.ts` (`canSeeUser`, `canSoftDeleteUser`, `canRestoreUser`) and `tasks.service.ts` (`canModifyTask`, `canHardDeleteTask`, plus `resolveScope` for lists). Failed task access is returned as **404** (do not leak that the id exists).
 - Soft-delete user: set `deleted_at`. Tasks stay; API exposes `ownerDeleted` so the UI can show `email (deleted)`.
 
 ### Tasks API
 
-Queries/mutations in `tasks.resolver.ts`: `activeTasks`, `binTasks`, `createTask`, `updateTask`, `moveTaskToBin`, `moveTaskToActive`, `permanentlyDeleteTask`, `moveCompletedToBin`, `markAllActiveTasks`, `unmarkAllActiveTasks`. Optional `ownerId` filters lists for **admin**. Non-admin viewers are scoped to their own `user_id`.
+Queries/mutations in `tasks.resolver.ts`: `activeTasks`, `binTasks`, `createTask`, `updateTask`, `moveTaskToBin`, `moveTaskToActive`, `permanentlyDeleteTask`, `moveCompletedToBin`, `markAllActiveTasks`, `unmarkAllActiveTasks`.
+
+List and bulk operations take optional **`ownerId`** and **`ownerRole`**. `TasksService.resolveScope` turns them into one of: `self`, `visible`, `role` (`user` | `manager`), or `user` (one id). Regular `user` is always `self`. Manager `visible` is own tasks plus `role=user`; manager may not request another manager/admin or `ownerRole=manager`. Admin `visible` is the whole table.
+
+`createTask` input may include `ownerId`. If omitted or self, the task is created for the viewer; if another id, the same scope rules apply (manager → only `role=user`).
+
+On `/tasks`, admin and manager get a **scope select** (My / All / All managers or All users / each person). The same args go to list queries, Mark all / Unmark / Delete completed, and refetch after card mutations. `New task for` shows who Add will create for (`you` vs that person's email). Regular users have no select.
+
+`permanentlyDeleteTask`: admin any bin task; manager only if the owner is `role=user`. Task GraphQL type includes `ownerRole` (from `JOIN users`).
 
 ## Shared permissions (`packages/permissions`)
 
@@ -159,15 +173,15 @@ Queries/mutations in `tasks.resolver.ts`: `activeTasks`, `binTasks`, `createTask
 
 | Function                   | Meaning                                      | Wired now                                              |
 | -------------------------- | -------------------------------------------- | ------------------------------------------------------ |
-| `canAccessUsers`           | Open Users tab / page / `users` query        | `TabNav`, `Users.tsx`                                  |
-| `canSeeUser`               | Show this account row                        | Not wired (list filter when `manager` exists)          |
+| `canAccessUsers`           | Open Users tab / page / `users` query        | `TabNav`, `Users.tsx`, `users` resolver                |
+| `canSeeUser`               | Show this account row                        | `auth.service` `findAllUsers`; manager sees self, users, managers |
 | `canSoftDeleteUser`        | Del / `deleteUser`                           | `auth.service`, `Users.tsx`                            |
-| `canRestoreUser`           | Restore / `restoreUser`                      | `auth.service`, `Users.tsx`                            |
-| `canSeeTask`               | See this task                                | Used by `canModifyTask`                                |
-| `canModifyTask`            | Edit / bin / restore / mark                  | `tasks.service` `assertCanModifyTask`                  |
-| `canHardDeleteTask`        | Permanent delete from bin                    | `Task.tsx` (API still `@Roles('admin')`)               |
+| `canRestoreUser`           | Restore / `restoreUser`                      | `auth.service`, `Users.tsx` (Restore also requires `canSoftDeleteUser` in the UI) |
+| `canSeeTask`               | See this task                                | Used by `canModifyTask`; list SQL follows the same idea via `resolveScope` |
+| `canModifyTask`            | Edit / bin / restore / mark                  | `tasks.service` `checkCanModifyTask`                   |
+| `canHardDeleteTask`        | Permanent delete from bin                    | `Task.tsx` and `permanentlyDeleteFromBin`              |
 
-Helpers are pure (`Actor`, `UserTarget`, `TaskTarget`). Do not import Nest, React, or `pg` here. Role `manager` is encoded in the functions but **not** in the DB `CHECK` yet.
+Helpers are pure (`Actor`, `UserTarget`, `TaskTarget`). Do not import Nest, React, or `pg` here. DB `users.role` CHECK is `user` \| `admin` \| `manager`.
 
 If Nest `nodenext` cannot resolve the package, add a `paths` alias in `apps/backend/tsconfig.json` to `../../packages/permissions/src/permissions.ts`.
 
@@ -209,9 +223,9 @@ If Nest `nodenext` cannot resolve the package, add a `paths` alias in `apps/back
 
 - **Clients:** `pg` `Client` in `auth.service.ts` and `tasks.service.ts`.
 - **Schema:** `apps/backend/db/schema.sql`.
-  - `users`: `id`, `email`, `password_hash`, `role` (`user` or `admin`), `created_at`, `deleted_at`.
+  - `users`: `id`, `email`, `password_hash`, `role` (`user` \| `admin` \| `manager`), `created_at`, `deleted_at`.
   - `tasks`: `id`, `text`, `isdone`, `deleted`, `date`, `user_id` → `users(id)` `ON DELETE CASCADE`.
-- Tasks are selected with `JOIN users` for `ownerEmail` / `ownerDeleted`.
+- Tasks are selected with `JOIN users` for `ownerEmail`, `ownerDeleted`, and `ownerRole`.
 
 ### Frontend GraphQL client
 

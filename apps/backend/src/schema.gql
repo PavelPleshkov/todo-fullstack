@@ -17,6 +17,7 @@ type AuthUser {
 
 input CreateTaskInput {
   isDone: Boolean!
+  ownerId: Int
   text: String!
 }
 
@@ -34,20 +35,20 @@ type Mutation {
   createTask(input: CreateTaskInput!): Task!
   deleteUser(id: Int!): AuthUser!
   login(input: LoginInput!): AuthPayload!
-  markAllActiveTasks(ownerId: Int): [Task!]!
-  moveCompletedToBin(ownerId: Int): MoveCompletedResult!
+  markAllActiveTasks(ownerId: Int, ownerRole: String): [Task!]!
+  moveCompletedToBin(ownerId: Int, ownerRole: String): MoveCompletedResult!
   moveTaskToActive(id: Int!): Task!
   moveTaskToBin(id: Int!): Task!
   permanentlyDeleteTask(id: Int!): Boolean!
   register(input: RegisterInput!): AuthPayload!
   restoreUser(id: Int!): AuthUser!
-  unmarkAllActiveTasks(ownerId: Int): [Task!]!
+  unmarkAllActiveTasks(ownerId: Int, ownerRole: String): [Task!]!
   updateTask(id: Int!, input: UpdateTaskInput!): Task!
 }
 
 type Query {
-  activeTasks(ownerId: Int): [Task!]!
-  binTasks(ownerId: Int): [Task!]!
+  activeTasks(ownerId: Int, ownerRole: String): [Task!]!
+  binTasks(ownerId: Int, ownerRole: String): [Task!]!
   users: [AuthUser!]!
 }
 
@@ -62,6 +63,7 @@ type Task {
   isDone: Boolean!
   ownerDeleted: Boolean!
   ownerEmail: String!
+  ownerRole: String!
   text: String!
   userId: Int!
 }

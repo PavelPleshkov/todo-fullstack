@@ -13,6 +13,8 @@ import {
   ACTIVE_TASKS_QUERY,
   BIN_TASKS_QUERY,
 } from "@/app/lib/graphql/operations";
+// import { TaskScopeKey } from "./Tasks";
+// import { useAuth } from "@/app/AuthContext";
 
 interface AddTaskProps {
   // tasks: TaskType[];
@@ -27,6 +29,10 @@ interface AddTaskProps {
   setIsBin: (isBin: boolean) => void;
   // refetchActive: () => Promise<unknown>;
   // refetchBin: () => Promise<unknown>;
+  canPickScope: boolean;
+  // taskScope: TaskScopeKey;
+  taskQueryVars: { ownerId: number | null; ownerRole: string | null };
+  newTaskFor: string;
 }
 
 export default memo(function AddTask({
@@ -42,12 +48,16 @@ export default memo(function AddTask({
   setIsBin,
   // refetchActive,
   // refetchBin,
+  canPickScope,
+  // taskScope,
+  taskQueryVars,
+  newTaskFor,
 }: AddTaskProps): React.ReactNode {
   const [text, setText] = useState<string>("");
   const [isAddTaskFailed, setIsAddTaskFailed] = useState<boolean>(false);
   const theme: string = useContext(ThemeContext);
   const className: string = "add-task-" + theme;
-
+  // const { user } = useAuth();
   // const [createTaskMut] = useMutation(CREATE_TASK_MUTATION, {
   //   refetchQueries: [{ query: ACTIVE_TASKS_QUERY }],
   // });
@@ -95,8 +105,16 @@ export default memo(function AddTask({
       // });
       const { data } = await client.mutate({
         mutation: CREATE_TASK_MUTATION,
-        variables: { input: { text: text.trim(), isDone: false } },
-        refetchQueries: [{ query: ACTIVE_TASKS_QUERY }],
+        variables: {
+          input: {
+            text: text.trim(),
+            isDone: false,
+            ownerId: taskQueryVars.ownerId,
+          },
+        },
+        refetchQueries: [
+          { query: ACTIVE_TASKS_QUERY, variables: taskQueryVars },
+        ],
       });
       if (data?.createTask) {
         // setTasks([data.createTask, ...tasks]);
@@ -133,16 +151,20 @@ export default memo(function AddTask({
       return;
     } else {
       try {
-        const data = await client.query({ query: ACTIVE_TASKS_QUERY });
+        const data = await client.query({
+          query: ACTIVE_TASKS_QUERY,
+          variables: taskQueryVars,
+        });
         const completedTasks = data.data?.activeTasks.filter(
           (task) => task.isDone,
         );
         if (completedTasks && completedTasks.length > 0) {
           await client.mutate({
             mutation: MOVE_COMPLETED_MUTATION,
+            variables: taskQueryVars,
             refetchQueries: [
-              { query: ACTIVE_TASKS_QUERY },
-              { query: BIN_TASKS_QUERY },
+              { query: ACTIVE_TASKS_QUERY, variables: taskQueryVars },
+              { query: BIN_TASKS_QUERY, variables: taskQueryVars },
             ],
           });
         } else {
@@ -203,7 +225,10 @@ export default memo(function AddTask({
       // await markAllMut();
       await client.mutate({
         mutation: MARK_ALL_MUTATION,
-        refetchQueries: [{ query: ACTIVE_TASKS_QUERY }],
+        variables: taskQueryVars,
+        refetchQueries: [
+          { query: ACTIVE_TASKS_QUERY, variables: taskQueryVars },
+        ],
       });
       // if (data?.markAllActiveTasks) {
       //   // setTasks(data.markAllActiveTasks);
@@ -235,7 +260,10 @@ export default memo(function AddTask({
       // await unmarkAllMut();
       await client.mutate({
         mutation: UNMARK_ALL_MUTATION,
-        refetchQueries: [{ query: ACTIVE_TASKS_QUERY }],
+        variables: taskQueryVars,
+        refetchQueries: [
+          { query: ACTIVE_TASKS_QUERY, variables: taskQueryVars },
+        ],
       });
       // if (data?.unmarkAllActiveTasks) {
       //   // setTasks(data.unmarkAllActiveTasks);
@@ -257,7 +285,16 @@ export default memo(function AddTask({
       className={className}
       data-testid="add-task"
     >
-      <Grid size={{ xs: 12, md: 6, lg: 4 }}>
+      <Grid
+        container
+        alignItems={"stretch"}
+        size={{ xs: 12, md: 6, lg: 4 }}
+        spacing={1}
+        direction={"column"}
+      >
+        {canPickScope && (
+          <div style={{ color: "#fff" }}>New task for {newTaskFor}</div>
+        )}
         <textarea
           aria-label="Add task input"
           data-testid="add-task-input"
@@ -274,7 +311,13 @@ export default memo(function AddTask({
           name="new task"
           // type="text"
           value={text}
-          placeholder={isAddTaskFailed ? "<--- Type new task here" : "New task"}
+          placeholder={
+            isAddTaskFailed
+              ? "<--- Type new task here"
+              : canPickScope
+                ? "Type here"
+                : "New task"
+          }
           onChange={(e) => setText(e.target.value)}
         />
       </Grid>

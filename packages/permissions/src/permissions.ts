@@ -44,7 +44,7 @@ export function canAccessUsers(actor: Actor): boolean {
 
 /**
  * Can this person see this account in the Users table.
- * Admin: any account. Manager: only `role=user`. Regular user: none.
+ * Admin: any account. Manager: himself, other `role=manager` or `role=user`. Regular user: none.
  *
  * @param actor - who is looking
  * @param target - the account row
@@ -52,7 +52,12 @@ export function canAccessUsers(actor: Actor): boolean {
  */
 export function canSeeUser(actor: Actor, target: UserTarget): boolean {
   if (actor.role === "admin") return true;
-  if (actor.role === "manager") return target.role === "user";
+  if (actor.role === "manager")
+    return (
+      actor.id === target.id ||
+      target.role === "user" ||
+      target.role === "manager"
+    );
   return false;
 }
 

@@ -13,7 +13,11 @@ import * as bcrypt from 'bcrypt';
 import { Client } from 'pg';
 import { JwtService } from '@nestjs/jwt';
 import type { AuthUser, AuthPayload } from '../graphql/auth.types';
-import { canRestoreUser, canSoftDeleteUser } from '@repo/permissions';
+import {
+  canRestoreUser,
+  canSeeUser,
+  canSoftDeleteUser,
+} from '@repo/permissions';
 
 @Injectable()
 export class AuthService implements OnModuleInit, OnModuleDestroy {
@@ -89,12 +93,14 @@ export class AuthService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  async findAllUsers(): Promise<AuthUser[]> {
+  async findAllUsers(actor: { id: number; role: string }): Promise<AuthUser[]> {
     const res = await this.client.query(
-      `SELECT id, email, role, created_at, deleted_at FROM users ORDER BY id ASC`,
+      `SELECT id, email, role, created_at, deleted_at FROM users ORDER BY role ASC, id ASC`,
     );
 
-    return res.rows.map((row: Record<string, unknown>) => this.mapRow(row));
+    return res.rows
+      .map((row: Record<string, unknown>) => this.mapRow(row))
+      .filter((row) => canSeeUser(actor, row));
   }
 
   async softDeleteUser(

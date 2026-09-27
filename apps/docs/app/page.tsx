@@ -103,7 +103,7 @@ PGDATABASE=todo_db`,
           <a href="http://localhost:3000/tasks">http://localhost:3000/tasks</a>
         </li>
         <li>
-          Users (admin):{" "}
+          Users (admin / manager):{" "}
           <a href="http://localhost:3000/users">http://localhost:3000/users</a>
         </li>
         <li>
@@ -159,13 +159,16 @@ PGDATABASE=todo_db`,
       <ul>
         <li>
           Public <code>login</code> / <code>register</code> (new users get role{" "}
-          <code>user</code>). JWT in <code>localStorage</code>, sent as{" "}
-          <code>Authorization: Bearer</code>.
+          <code>user</code>). Roles in DB: <code>user</code>,{" "}
+          <code>admin</code>, <code>manager</code>. JWT in{" "}
+          <code>localStorage</code>, sent as <code>Authorization: Bearer</code>.
         </li>
         <li>
           Shared rules: <code>packages/permissions</code> imported as{" "}
           <code>@repo/permissions</code> from both apps (tabs, Users actions,
-          task edit / hard-delete).
+          task edit / hard-delete). Admin and manager filter tasks with a
+          select (My / All / by role or person); the same scope is used for
+          bulk actions and optional <code>createTask.ownerId</code>.
         </li>
         <li>
           After GraphQL schema changes: from <code>apps/frontend</code> run{" "}
