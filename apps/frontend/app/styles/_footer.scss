@@ -1,0 +1,11 @@
+.footer {
+  padding: 10px;
+
+  &.footer-dark {
+    color: var(--foreground);
+  }
+
+  &.footer-light {
+    color: var(--background);
+  }
+}

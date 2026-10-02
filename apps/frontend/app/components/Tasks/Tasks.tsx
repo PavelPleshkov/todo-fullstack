@@ -377,7 +377,11 @@ export default function Tasks() {
           padding={"10px"}
         >
           <h1 style={{ margin: "0 10px", padding: "10px 0px" }}>
-            {!isBin ? "Tasks" : sourceTasks.length ? "Bin" : "Bin is empty"}
+            {!isBin
+              ? `Tasks (${sourceTasks.length})`
+              : sourceTasks.length
+                ? `Bin (${sourceTasks.length})`
+                : "Bin is empty"}
           </h1>
           {canPickScope && (
             <Select

@@ -1,4 +1,6 @@
 .content {
+  flex-grow: 1;
+
   .failed-adding::placeholder {
     opacity: 1 !important;
     color: #ff3e3e !important;
@@ -7,7 +9,7 @@
 }
 
 .content-dark {
-  background-color: #4e504b;
+  background-color: #4f4a4b;
   color: var(--foreground);
 
   .add-task-dark {

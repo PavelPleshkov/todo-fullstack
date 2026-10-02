@@ -222,30 +222,38 @@ const Task = memo(function Task({
                 isBin
                   ? "Can't edit in bin"
                   : task.isDone
-                    ? "Set as incomplete"
-                    : "Set as complete"
+                    ? "Click to set as incomplete"
+                    : "Click to set as complete"
               }
               style={{
                 display: "block",
                 position: "relative",
+                // backgroundColor: task.ownerDeleted
+                //   ? theme === "dark"
+                //     ? "rgba(180, 60, 60, 0.28)"
+                //     : "rgba(180, 40, 40, 0.12)"
+                //   : theme === "dark"
+                //     ? "transparent"
+                //     : "var(--foreground)",
                 backgroundColor: task.ownerDeleted
                   ? theme === "dark"
                     ? "rgba(180, 60, 60, 0.28)"
                     : "rgba(180, 40, 40, 0.12)"
                   : theme === "dark"
-                    ? "transparent"
-                    : "var(--foreground)",
+                    ? "var(--background)"
+                    : "#fff",
                 // backgroundColor:
                 //   // theme === "dark" ? "#696969" : "var(--foreground)",
                 //   theme === "dark" ? "transparent" : "var(--foreground)",
                 border: "1px solid rgba(29, 29, 29, 0.24)",
+                // border: `2px solid ${theme === "dark" ? "var(--background)" : "var(--foreground)"}`,
                 borderRadius: "5px",
                 width: "100%",
                 height: "100%",
                 padding: "10px 30px 10px 20px",
                 // overflow: "hidden",
                 // boxShadow: "0 4px 12px rgba(0,0,0,0.5)",
-                opacity: isBin || task.isDone ? ".7" : "1",
+                opacity: isBin || task.isDone ? ".6" : "1",
                 cursor: isBin ? "not-allowed" : "pointer",
               }}
             >
@@ -256,7 +264,32 @@ const Task = memo(function Task({
                 wrap="nowrap"
                 alignItems={"center"}
               >
-                <Grid direction={"row"}>
+                <Grid
+                  container
+                  direction={"row"}
+                  alignItems={"center"}
+                  spacing={1}
+                  sx={{
+                    position: "absolute",
+                    right: "0",
+                    top: "0",
+                    padding: "10px",
+                    // margin: "10px",
+                  }}
+                >
+                  {task.isDone && (
+                    <div
+                      style={{
+                        padding: "0px 10px",
+                        borderRadius: "15px",
+                        backgroundColor:
+                          theme === "dark" ? "#69696950" : "var(--foreground)",
+                        opacity: 1,
+                      }}
+                    >
+                      Done
+                    </div>
+                  )}
                   <input
                     // key={task.isDone ? "checked" : "unchecked"}
                     id={task.id.toString()}
@@ -269,12 +302,12 @@ const Task = memo(function Task({
                     onChange={() => toggleTask()}
                     style={{
                       accentColor: theme === "dark" ? "#69696950" : "#994747",
-                      display: "block",
-                      // display: "none",
-                      position: "absolute",
-                      right: "0",
-                      top: "0",
-                      margin: "10px",
+                      // display: "inline-block",
+                      display: "none",
+                      // position: "absolute",
+                      // right: "0",
+                      // // top: "0",
+                      margin: "5px",
                       cursor: isBin ? "not-allowed" : "pointer",
                     }}
                   />
