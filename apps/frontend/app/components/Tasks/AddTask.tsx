@@ -12,6 +12,7 @@ import {
   UNMARK_ALL_MUTATION,
   ACTIVE_TASKS_QUERY,
   BIN_TASKS_QUERY,
+  UPDATE_TASK_MUTATION,
 } from "@/app/lib/graphql/operations";
 // import { TaskScopeKey } from "./Tasks";
 // import { useAuth } from "@/app/AuthContext";
@@ -33,6 +34,9 @@ interface AddTaskProps {
   // taskScope: TaskScopeKey;
   taskQueryVars: { ownerId: number | null; ownerRole: string | null };
   newTaskFor: string;
+  selectedIds: number[];
+  setSelectedIdsRaw: (selectedIds: number[]) => void;
+  showedTasksIds: number[];
 }
 
 export default memo(function AddTask({
@@ -52,6 +56,9 @@ export default memo(function AddTask({
   // taskScope,
   taskQueryVars,
   newTaskFor,
+  selectedIds,
+  setSelectedIdsRaw,
+  showedTasksIds,
 }: AddTaskProps): React.ReactNode {
   const [text, setText] = useState<string>("");
   const [isAddTaskFailed, setIsAddTaskFailed] = useState<boolean>(false);
@@ -274,6 +281,38 @@ export default memo(function AddTask({
     }
   };
 
+  const completeSelectedTasks = async (ids: number[]) => {
+    // console.log("Complete", ids);
+    try {
+      await Promise.all(
+        ids.map((id) =>
+          client.mutate({
+            mutation: UPDATE_TASK_MUTATION,
+            variables: { id, input: { isDone: true } },
+          }),
+        ),
+      );
+    } catch (error) {
+      console.log("Complete selected tasks error: ", error);
+    }
+  };
+
+  const reopenSelectedTasks = async (ids: number[]) => {
+    // console.log("Reopen", ids);
+    try {
+      await Promise.all(
+        ids.map((id) =>
+          client.mutate({
+            mutation: UPDATE_TASK_MUTATION,
+            variables: { id, input: { isDone: false } },
+          }),
+        ),
+      );
+    } catch (error) {
+      console.log("Reopen selected tasks error: ", error);
+    }
+  };
+
   return (
     <Grid
       container
@@ -336,6 +375,21 @@ export default memo(function AddTask({
             Add
           </Btn>
           <Btn
+            disabled={isBin}
+            variant="contained"
+            onClick={() => setSelectedIdsRaw(showedTasksIds)}
+          >
+            Select all
+          </Btn>
+
+          <Btn
+            disabled={isBin}
+            variant="contained"
+            onClick={() => setSelectedIdsRaw([])}
+          >
+            Unselect all
+          </Btn>
+          <Btn
             // disabled={isBin || searchValue !== ""}
             disabled={isBin || isSearchActive}
             variant="contained"
@@ -343,9 +397,19 @@ export default memo(function AddTask({
           >
             Delete completed
           </Btn>
+          <Btn
+            variant="contained"
+            onClick={() => {
+              sortTasks();
+            }}
+          >
+            {/* Sort {sortDirection} */}
+            {sortDirection === "asc" ? "↑" : "↓"} Sort{" "}
+            {sortDirection === "asc" ? "↑" : "↓"}
+          </Btn>
         </Grid>
         <Grid container>
-          <Btn
+          {/* <Btn
             // disabled={isBin || searchValue !== ""}
             disabled={isBin || isSearchActive}
             variant="contained"
@@ -360,22 +424,29 @@ export default memo(function AddTask({
             onClick={() => unmarkAll()}
           >
             Unmark all
+          </Btn> */}
+          <Btn
+            // disabled={isBin || searchValue !== ""}
+            disabled={isBin || selectedIds.length === 0}
+            variant="contained"
+            onClick={() => completeSelectedTasks(selectedIds)}
+          >
+            Complete ({selectedIds.length})
           </Btn>
           <Btn
+            // disabled={isBin || searchValue !== ""}
+            disabled={isBin || selectedIds.length === 0}
             variant="contained"
-            onClick={() => {
-              sortTasks();
-            }}
+            onClick={() => reopenSelectedTasks(selectedIds)}
           >
-            {/* Sort {sortDirection} */}
-            {sortDirection === "asc" ? "↑" : "↓"} Sort{" "}
-            {sortDirection === "asc" ? "↑" : "↓"}
+            Reopen ({selectedIds.length})
           </Btn>
         </Grid>
         <Grid>
           <Btn
             variant="contained"
             onClick={() => {
+              // setSelectedIdsRaw([]);
               setIsBin(isBin ? false : true);
             }}
           >
