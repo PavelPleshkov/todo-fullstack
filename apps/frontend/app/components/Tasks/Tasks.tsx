@@ -156,7 +156,17 @@ export default function Tasks() {
 
   const [isBin, setIsBin] = useState<boolean>(false);
 
-  // const { data: activeData } = useQuery(ACTIVE_TASKS_QUERY);
+  // User-clicked/selected task ids. May still contain tasks that were already deleted
+  const [selectedIdsRaw, setSelectedIdsRaw] = useState<number[]>([]);
+
+  const handleSelectTask = (task: TaskType) => {
+    setSelectedIdsRaw((prev) =>
+      prev.includes(task.id)
+        ? prev.filter((id) => id !== task.id)
+        : [...prev, task.id],
+    );
+  };
+
   const {
     data: activeData,
     loading: activeLoading,
@@ -252,6 +262,15 @@ export default function Tasks() {
 
   const sourceTasks = isBin ? bin : tasks;
 
+  // Ids that exist in the current list (active or bin).
+  const sourceIdSet = useMemo(
+    () => new Set(sourceTasks.map((task) => task.id)),
+    [sourceTasks],
+  );
+
+  // What UI and children use: selection minus ids that are no longer in the list.
+  const selectedIds = selectedIdsRaw.filter((id) => sourceIdSet.has(id));
+
   //SEARCH
 
   const [searchValue, setSearchValue] = useState<string>("");
@@ -338,13 +357,7 @@ export default function Tasks() {
   }
 
   return (
-    <Grid
-      container
-      size={12}
-      direction={"column"}
-      spacing={2}
-      data-testid={"tasks"}
-    >
+    <Stack direction={"column"} spacing={2} data-testid={"tasks"}>
       <AddTask
         // tasks={tasks}
         // setTasks={setTasks}
@@ -358,85 +371,120 @@ export default function Tasks() {
         setIsBin={setIsBin}
         canPickScope={canPickScope}
         // taskScope={taskScope}
+        people={people}
         taskQueryVars={taskQueryVars}
         newTaskFor={newTaskForLabel(taskScope, people)}
+        selectedIds={selectedIds}
+        setSelectedIdsRaw={setSelectedIdsRaw}
+        showedTasksIds={showedTasks.map((task) => task.id)}
         // refetchActive={refetchActive}
         // refetchBin={refetchBin}
       />
 
-      <Grid
-        container
-        direction={"column"}
-        size={12}
-        sx={{ paddingBottom: "20px" }}
-      >
-        <Stack
-          direction={{ xs: "column", sm: "row" }}
-          alignItems={{ xs: "stretch", sm: "center" }}
-          spacing={2}
-          padding={"10px"}
-        >
-          <h1 style={{ margin: "0 10px", padding: "10px 0px" }}>
-            {!isBin ? "Tasks" : sourceTasks.length ? "Bin" : "Bin is empty"}
-          </h1>
-          {canPickScope && (
-            <Select
-              native
-              value={taskScope}
-              onChange={(event) =>
-                setTaskScope(event.target.value as TaskScopeKey)
-              }
-              inputProps={{ "aria-label": "Whose tasks" }}
-              sx={{
-                color: "inherit",
-                // "& .MuiNativeSelect-select": { color: "inherit" },
-                "& .MuiSvgIcon-root": { color: "inherit" },
-                "& option": {
-                  color: "#1d1d1d",
-                  backgroundColor: "#ffffff",
-                },
-                "& .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#1d1d1d",
-                },
-                "&:hover .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#1d1d1d",
-                },
-                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                  borderColor:
-                    theme === "dark"
-                      ? "var(--foreground)"
-                      : "var(--background)",
-                  borderWidth: "2px",
-                },
-                "& .MuiNativeSelect-select:focus": {
-                  backgroundColor: "transparent",
-                },
-              }}
-            >
-              <option value="self">My tasks</option>
-              <option value="visible">All tasks</option>
+      <Stack direction={"column"} spacing={2} sx={{ padding: "0px 20px 30px" }}>
+        {canPickScope && (
+          <Select
+            native
+            value={taskScope}
+            onChange={(event) => {
+              setSelectedIdsRaw([]);
+              setTaskScope(event.target.value as TaskScopeKey);
+            }}
+            inputProps={{ "aria-label": "Whose tasks" }}
+            sx={{
+              color: "inherit",
+              // margin: "0px 10px",
+              width: { xs: "calc(100% - 20px)", sm: "fit-content" },
+              // width: "fit-content",
+              // "& .MuiNativeSelect-select": { color: "inherit" },
+              "& .MuiSvgIcon-root": { color: "inherit" },
+              "& option": {
+                color: "#1d1d1d",
+                backgroundColor: "#ffffff",
+              },
+              "& .MuiOutlinedInput-notchedOutline": {
+                borderColor: "#1d1d1d",
+              },
+              "&:hover .MuiOutlinedInput-notchedOutline": {
+                borderColor: "#1d1d1d",
+              },
+              "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                borderColor:
+                  theme === "dark" ? "var(--foreground)" : "var(--background)",
+                borderWidth: "2px",
+              },
+              "& .MuiNativeSelect-select:focus": {
+                backgroundColor: "transparent",
+              },
+            }}
+          >
+            <option value="self">My tasks</option>
+            <option value="visible">All tasks</option>
 
-              {user?.role === "admin" && (
-                <optgroup label="Managers">
-                  <option value="role:manager">All managers</option>
-                  {managers.map((row) => (
-                    <option key={row.id} value={`user:${row.id}`}>
-                      {row.deletedAt ? `${row.email} (deleted)` : row.email}
-                    </option>
-                  ))}
-                </optgroup>
-              )}
-
-              <optgroup label="Users">
-                <option value="role:user">All users</option>
-                {users.map((row) => (
+            {user?.role === "admin" && (
+              <optgroup label="Managers">
+                <option value="role:manager">All managers</option>
+                {managers.map((row) => (
                   <option key={row.id} value={`user:${row.id}`}>
                     {row.deletedAt ? `${row.email} (deleted)` : row.email}
                   </option>
                 ))}
               </optgroup>
-            </Select>
-          )}
+            )}
+
+            <optgroup label="Users">
+              <option value="role:user">All users</option>
+              {users.map((row) => (
+                <option key={row.id} value={`user:${row.id}`}>
+                  {row.deletedAt ? `${row.email} (deleted)` : row.email}
+                </option>
+              ))}
+            </optgroup>
+          </Select>
+        )}
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          alignItems={{ xs: "stretch", sm: "center" }}
+          spacing={2}
+          // padding={"10px"}
+        >
+          <h1>
+            {!isBin
+              ? deferredSearchValue.trim() === ""
+                ? selectedIds.length === 0
+                  ? `Tasks (${showedTasks.length})`
+                  : `Tasks (${showedTasks.length}, ${selectedIds.length} selected)`
+                : selectedIds.length === 0
+                  ? `Tasks (${showedTasks.length} of ${sourceTasks.length})`
+                  : `Tasks (${showedTasks.length} of ${sourceTasks.length}, ${selectedIds.length} selected)`
+              : sourceTasks.length === 0
+                ? "Bin is empty"
+                : deferredSearchValue.trim() === ""
+                  ? `Bin (${showedTasks.length})`
+                  : `Bin (${showedTasks.length} of ${sourceTasks.length})`}
+          </h1>
+          {/* <h1 style={{ margin: "0 10px", padding: "10px 0px" }}>
+            {!isBin
+              ? `Tasks (${showedTasks.length})`
+              : sourceTasks.length === 0
+                ? "Bin is empty"
+                : `Bin (${showedTasks.length})`}
+          </h1> */}
+
+          <div>
+            Source tasks: {sourceTasks.length}
+            {/* , showed tasks:{" "} {showedTasks.length}, selected tasks: {selectedIds.length} */}
+          </div>
+          <div>
+            {/* Source tasks: {sourceTasks.length},  */}
+            Showed tasks: {showedTasks.length}
+            {/* , selected tasks: {selectedIds.length} */}
+          </div>
+          <div>
+            {/* Source tasks: {sourceTasks.length}, showed tasks:{" "}
+            {showedTasks.length},  */}
+            Selected tasks: {selectedIds.length}
+          </div>
         </Stack>
 
         <Grid
@@ -446,7 +494,7 @@ export default function Tasks() {
           spacing={2}
           size={{ xs: 12, md: 10, lg: 8 }}
           sx={{
-            px: "10px",
+            // px: "10px",
             width: "100%",
             maxWidth: "100%",
             boxSizing: "border-box",
@@ -469,16 +517,20 @@ export default function Tasks() {
             <Suspense fallback={<Loading />}>
               {showedTasks.length ? (
                 <ul>
-                  {showedTasks.map((task: TaskType) => {
-                    return (
-                      <Task
-                        task={task}
-                        key={task.id}
-                        isBin={isBin}
-                        taskQueryVars={taskQueryVars}
-                      />
-                    );
-                  })}
+                  <Stack direction={"column"} spacing={2}>
+                    {showedTasks.map((task: TaskType) => {
+                      return (
+                        <Task
+                          task={task}
+                          key={task.id}
+                          isBin={isBin}
+                          taskQueryVars={taskQueryVars}
+                          isSelected={selectedIds.includes(task.id)}
+                          handleSelectTask={handleSelectTask}
+                        />
+                      );
+                    })}
+                  </Stack>
                 </ul>
               ) : sourceTasks.length === 0 ? (
                 <div style={{ padding: "10px 20px" }}>No tasks found</div>
@@ -492,7 +544,7 @@ export default function Tasks() {
             </Suspense>
           )}
         </ErrorBoundary>
-      </Grid>
-    </Grid>
+      </Stack>
+    </Stack>
   );
 }

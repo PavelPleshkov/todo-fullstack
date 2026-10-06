@@ -1,7 +1,7 @@
 .header {
   display: flex;
   align-items: center;
-  min-height: 56px;
+  // min-height: 56px;
   box-sizing: border-box;
 
   --header-padding: 10px;
@@ -10,20 +10,23 @@
 
 .header-inner {
   display: flex;
-  align-items: flex-start;
-  flex-direction: column;
-  flex-direction: column-reverse;
+  align-items: center;
   gap: 10px;
   width: 100%;
   min-width: 0;
   padding: var(--header-padding);
   padding-right: calc(var(--header-padding) + var(--header-btn-zone));
   box-sizing: border-box;
+
+  @media (max-width: 600px) {
+    flex-direction: column-reverse;
+  }
 }
 
 .header-title {
   margin: 0;
   flex: 1;
+  align-self: flex-start;
   min-width: 0;
   font-size: inherit;
   font-weight: inherit;
@@ -33,7 +36,7 @@
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
-  align-items: flex-start;
+  align-items: center;
   gap: 16px;
   min-width: 0;
   width: 100%;

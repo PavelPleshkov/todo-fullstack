@@ -42,6 +42,8 @@ export interface TaskProps {
   // refetchActive: () => Promise<unknown>;
   // refetchBin: () => Promise<unknown>;
   taskQueryVars: { ownerId: number | null; ownerRole: string | null };
+  isSelected: boolean;
+  handleSelectTask: (task: Task) => void;
 }
 
 const Task = memo(function Task({
@@ -55,6 +57,8 @@ const Task = memo(function Task({
   taskQueryVars,
   // refetchActive,
   // refetchBin,
+  isSelected,
+  handleSelectTask,
 }: TaskProps): React.ReactNode {
   const [selfText, setSelfText] = useState(task.text);
   const [isEditable, setIsEditable] = useState(false);
@@ -212,19 +216,13 @@ const Task = memo(function Task({
   };
 
   return (
-    <li style={{ padding: "5px 10px" }} data-testid="task">
+    <li data-testid="task">
       <Grid container spacing={2} size={12} direction={"row"}>
         <Grid size={{ xs: 9, lg: 8 }}>
           {!isEditable ? (
             <label
               className={isBin ? "" : "task-label"}
-              title={
-                isBin
-                  ? "Can't edit in bin"
-                  : task.isDone
-                    ? "Set as incomplete"
-                    : "Set as complete"
-              }
+              title={isSelected ? "Unselect task" : "Select task"}
               style={{
                 display: "block",
                 position: "relative",
@@ -233,11 +231,8 @@ const Task = memo(function Task({
                     ? "rgba(180, 60, 60, 0.28)"
                     : "rgba(180, 40, 40, 0.12)"
                   : theme === "dark"
-                    ? "transparent"
-                    : "var(--foreground)",
-                // backgroundColor:
-                //   // theme === "dark" ? "#696969" : "var(--foreground)",
-                //   theme === "dark" ? "transparent" : "var(--foreground)",
+                    ? "var(--background)"
+                    : "#fff",
                 border: "1px solid rgba(29, 29, 29, 0.24)",
                 borderRadius: "5px",
                 width: "100%",
@@ -245,8 +240,10 @@ const Task = memo(function Task({
                 padding: "10px 30px 10px 20px",
                 // overflow: "hidden",
                 // boxShadow: "0 4px 12px rgba(0,0,0,0.5)",
-                opacity: isBin || task.isDone ? ".7" : "1",
+                opacity: isBin || task.isDone ? ".6" : "1",
+                // opacity: task.isDone ? ".6" : "1",
                 cursor: isBin ? "not-allowed" : "pointer",
+                // cursor: "pointer",
               }}
             >
               <Grid
@@ -256,31 +253,85 @@ const Task = memo(function Task({
                 wrap="nowrap"
                 alignItems={"center"}
               >
-                <Grid direction={"row"}>
+                <Grid
+                  container
+                  direction={"row"}
+                  alignItems={"center"}
+                  spacing={1}
+                  sx={{
+                    position: "absolute",
+                    right: "0",
+                    top: "0",
+                    padding: "10px",
+                    // margin: "10px",
+                  }}
+                >
+                  {/* {task.isDone && (
+                    <div
+                      style={{
+                        padding: "0px 10px",
+                        borderRadius: "15px",
+                        backgroundColor:
+                          theme === "dark" ? "#69696950" : "var(--foreground)",
+                        opacity: 1,
+                      }}
+                    >
+                      Done
+                    </div>
+                  )} */}
                   <input
-                    // key={task.isDone ? "checked" : "unchecked"}
                     id={task.id.toString()}
                     type="checkbox"
                     disabled={isBin}
-                    checked={task.isDone}
+                    checked={isSelected}
+                    // checked={task.isDone}
                     // onChange={() =>
                     //   toggleTask ? toggleTask(task.id) : undefined
                     // }
-                    onChange={() => toggleTask()}
+                    // onChange={() => toggleTask()}
+                    onChange={() => handleSelectTask(task)}
                     style={{
                       accentColor: theme === "dark" ? "#69696950" : "#994747",
-                      display: "block",
+                      display: "inline-block",
                       // display: "none",
-                      position: "absolute",
-                      right: "0",
-                      top: "0",
-                      margin: "10px",
+                      // position: "absolute",
+                      // right: "0",
+                      // // top: "0",
+                      margin: "5px",
                       cursor: isBin ? "not-allowed" : "pointer",
+                      // cursor: "pointer",
                     }}
                   />
                 </Grid>
-                <Grid>
-                  <div>{task.date}</div>
+                <Grid sx={{ width: "100%" }}>
+                  <div
+                    style={{
+                      width: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "flex-start",
+                      gap: "20px",
+                    }}
+                  >
+                    <div>{task.date}</div>
+                    {task.isDone && (
+                      <div
+                        style={{
+                          // display: "inline-block",
+                          padding: "0px 10px",
+                          borderRadius: "15px",
+                          backgroundColor:
+                            theme === "dark"
+                              ? "#69696950"
+                              : "var(--foreground)",
+                          opacity: 1,
+                        }}
+                      >
+                        Completed
+                      </div>
+                    )}
+                  </div>
+
                   <div
                     style={{
                       fontSize: 12,
@@ -312,40 +363,10 @@ const Task = memo(function Task({
               className={isBin ? "" : "task-textarea"}
               data-testid="task-textarea"
               id={task.id.toString()}
-              // type="text"
-              // rows={5}
               value={selfText}
               autoFocus={isEditable}
-              // onKeyDown={(e) => {
-              //   if (e.key === "Enter") {
-              //     saveTask(task.id);
-              //   }
-              // }}
-              // onBlur={() => {
-              // saveTask(task.id);
-              // }}
-              // onFocus={(e) => {
-              //   e.target.setSelectionRange(
-              //     e.target.value.length,
-              //     e.target.value.length,
-              //   );
-              //   e.target.scrollTo({
-              //     top: e.target.scrollHeight,
-              //     behavior: "smooth",
-              //   });
-              // }}
               onChange={(e) => {
                 setSelfText(e.target.value);
-
-                // setTasks(
-                //   tasks.map((t) => {
-                //     if (t.id === +e.target.id) {
-                //       return { ...t, text: e.target.value };
-                //     } else {
-                //       return t;
-                //     }
-                //   }),
-                // );
               }}
               style={{
                 width: "100%",
@@ -358,45 +379,28 @@ const Task = memo(function Task({
             />
           )}
         </Grid>
-        <Grid container direction={"row"} size={{ xs: 3, lg: 4 }} spacing={2}>
-          <Grid>
-            {!isBin ? (
-              <Btn
-                title="Move to bin"
-                onClick={() => deleteTask(task.id)}
-                variant="contained"
-              >
-                <Delete />
-              </Btn>
-            ) : (
-              // isAdmin && (
-              user &&
-              canHardDeleteTask(user, {
-                ownerId: task.userId,
-                ownerRole: task.ownerRole,
-              }) && (
-                <Btn
-                  title="Delete"
-                  onClick={() => deleteTask(task.id)}
-                  variant="contained"
-                >
-                  <Delete />
-                </Btn>
-              )
-            )}
-
-            {/* <Btn
-              title={isBin ? "Delete" : "Move to bin"}
-              onClick={() => deleteTask(task.id)}
+        <Grid
+          container
+          direction={"row"}
+          size={{ xs: 3, lg: 4 }}
+          spacing={2}
+          alignItems={"flex-start"}
+        >
+          {isBin ? (
+            <Btn
+              title="Restore from bin"
               variant="contained"
+              size="small"
+              onClick={() => restoreTaskFromBin(task.id)}
             >
-              <Delete />
-            </Btn> */}
-          </Grid>
-          <Grid>
-            {/* <Btn
+              Restore
+            </Btn>
+          ) : (
+            <Btn
+              title={isEditable ? "Save task" : "Edit task"}
               disabled={isBin || task.isDone}
               variant="contained"
+              size="small"
               onClick={() => {
                 if (isEditable) {
                   saveTask(task.id);
@@ -406,32 +410,46 @@ const Task = memo(function Task({
               }}
             >
               {isEditable ? "Save" : "Edit"}
-            </Btn> */}
-            {isBin ? (
+            </Btn>
+          )}
+          {!isBin ? (
+            <>
               <Btn
-                title="Restore from bin"
+                title="Move to bin"
+                onClick={() => deleteTask(task.id)}
                 variant="contained"
-                onClick={() => restoreTaskFromBin(task.id)}
+                size="small"
               >
-                Restore
+                <Delete />
               </Btn>
-            ) : (
               <Btn
-                title={isEditable ? "Save task" : "Edit task"}
-                disabled={isBin || task.isDone}
+                title={task.isDone ? "Reopen task" : "Complete task"}
                 variant="contained"
+                size="small"
+                disabled={isBin}
                 onClick={() => {
-                  if (isEditable) {
-                    saveTask(task.id);
-                  } else {
-                    setIsEditable(true);
-                  }
+                  toggleTask();
                 }}
               >
-                {isEditable ? "Save" : "Edit"}
+                {task.isDone ? "Reopen" : "Complete"}
               </Btn>
-            )}
-          </Grid>
+            </>
+          ) : (
+            user &&
+            canHardDeleteTask(user, {
+              ownerId: task.userId,
+              ownerRole: task.ownerRole,
+            }) && (
+              <Btn
+                title="Delete"
+                onClick={() => deleteTask(task.id)}
+                variant="contained"
+                size="small"
+              >
+                <Delete />
+              </Btn>
+            )
+          )}
         </Grid>
       </Grid>
     </li>

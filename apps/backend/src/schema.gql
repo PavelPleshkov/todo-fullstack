@@ -2,6 +2,11 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+input AssignTasksInput {
+  ids: [Int!]!
+  ownerId: Int!
+}
+
 type AuthPayload {
   accessToken: String!
   user: AuthUser!
@@ -32,6 +37,7 @@ type MoveCompletedResult {
 }
 
 type Mutation {
+  assignTasks(input: AssignTasksInput!): [Task!]!
   createTask(input: CreateTaskInput!): Task!
   deleteUser(id: Int!): AuthUser!
   login(input: LoginInput!): AuthPayload!

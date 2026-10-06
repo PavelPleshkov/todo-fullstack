@@ -38,11 +38,11 @@ export default function Header({ setTheme }: HeaderProps): React.ReactNode {
               Jest, GraphQL, AI, App Router, optimization, Auth
             </span> */}
           </span>
-          <span className="header-title-text">
+          {/* <span className="header-title-text">
             React, TS, Next.js, Nest.js, PostgreSQL, Formik with Yup, RTL, Jest,
             GraphQL, AI, App Router, optimization, JWT Authentication, RBAC
             (Role-Based Access Control) with permissions
-          </span>
+          </span> */}
         </h1>
 
         <div className="header-auth">

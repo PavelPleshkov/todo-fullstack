@@ -5,8 +5,9 @@ import { Button, type ButtonProps, type SxProps } from "@mui/material";
 interface BtnProps extends ButtonProps {
   className?: string;
   disabled?: boolean;
-  onClick?: () => void;
+  // onClick?: () => void;
   sx?: SxProps;
+  size?: ButtonProps["size"];
   title?: string;
   variant: ButtonProps["variant"];
   children: React.ReactNode;
@@ -24,6 +25,7 @@ export default memo(function Btn({
   disabled = false,
   onClick,
   sx,
+  size = "small",
   title,
   variant,
   children,
@@ -42,6 +44,7 @@ export default memo(function Btn({
       disabled={disabled}
       onClick={onClick}
       sx={resultSx}
+      size={size}
       variant={variant}
       // set to true to prevent the ripple effect and double rendering of the button
       disableRipple={false}

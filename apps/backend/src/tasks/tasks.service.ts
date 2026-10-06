@@ -10,7 +10,11 @@ import { ConfigService } from '@nestjs/config';
 import { Client, type QueryResult } from 'pg';
 import type { Task } from '../graphql/task.types';
 import type { JwtPayload } from '../auth/jwt-payload';
-import { canModifyTask, canHardDeleteTask } from '@repo/permissions';
+import {
+  canModifyTask,
+  canHardDeleteTask,
+  canAssignTaskTo,
+} from '@repo/permissions';
 
 export type UpdateTaskPayload = {
   text?: string;
@@ -385,6 +389,64 @@ export class TasksService implements OnModuleInit, OnModuleDestroy {
     //   date: new Date(row.date).toLocaleString(),
     // };
     return this.findById(Number(res.rows[0].id));
+  }
+
+  async assign(
+    ids: number[],
+    newOwnerId: number,
+    viewer: JwtPayload,
+  ): Promise<Task[]> {
+    if (ids.length === 0) {
+      throw new HttpException('No tasks to assign', HttpStatus.BAD_REQUEST);
+    }
+
+    const targetRes = await this.client.query<{ id: number; role: string }>(
+      `SELECT id, role FROM users WHERE id = $1`,
+      [newOwnerId],
+    );
+
+    if (targetRes.rows.length === 0) {
+      throw new HttpException('Task not found', HttpStatus.NOT_FOUND);
+    }
+
+    if (
+      !canAssignTaskTo(
+        { id: viewer.sub, role: viewer.role },
+        {
+          id: Number(targetRes.rows[0].id),
+          role: String(targetRes.rows[0].role),
+        },
+      )
+    ) {
+      throw new HttpException('Task not found', HttpStatus.NOT_FOUND);
+    }
+
+    const userId = Number(targetRes.rows[0].id);
+
+    const uniqueIds = [...new Set(ids)];
+
+    for (const id of uniqueIds) {
+      await this.checkCanModifyTask(id, viewer);
+    }
+
+    const updated = await this.client.query(
+      `UPDATE tasks
+       SET user_id = $1
+       WHERE id = ANY($2::int[]) AND deleted = false
+       RETURNING id`,
+      [userId, uniqueIds],
+    );
+
+    if (updated.rows.length !== uniqueIds.length) {
+      throw new HttpException('Task not found', HttpStatus.NOT_FOUND);
+    }
+
+    const res = await this.client.query(
+      `${this.taskSelectSql} WHERE t.id = ANY($1::int[])`,
+      [uniqueIds],
+    );
+
+    return res.rows.map((row: Record<string, unknown>) => this.mapRow(row));
   }
 
   async moveToBin(id: number, viewer: JwtPayload): Promise<Task> {

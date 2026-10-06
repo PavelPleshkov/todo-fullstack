@@ -91,7 +91,8 @@ PGDATABASE=todo_db`,
       <h2>Links</h2>
       <ul>
         <li>
-          Frontend (opens on <code>/profile</code>):{" "}
+          Frontend (<code>/</code> redirects to <code>/login</code>; after login →{" "}
+          <code>/tasks</code>):{" "}
           <a href="http://localhost:3000">http://localhost:3000</a>
         </li>
         <li>

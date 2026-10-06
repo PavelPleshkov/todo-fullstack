@@ -50,6 +50,10 @@ export default function TabNav() {
       className={`tab-nav tab-nav-${theme}`}
       data-testid="tab-nav"
       aria-label="Main navigation"
+      // position="sticky"
+      // top={0}
+      // zIndex={1000}
+      style={{ position: "sticky", top: 0, zIndex: 110 }}
     >
       <Tabs
         value={activeIndex === -1 ? false : activeIndex}

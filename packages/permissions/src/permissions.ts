@@ -95,6 +95,23 @@ export function canRestoreUser(actor: Actor, target: UserTarget): boolean {
 }
 
 /**
+ * Can this person assign a task to this account (`assignTasks`).
+ * Regular user: no. Admin: any account. Manager: himself or a `role=user`.
+ * Whether the task itself may be changed is `canModifyTask`, not this function.
+ *
+ * @param actor - who assigns
+ * @param target - the account that would become the new owner
+ * @returns `true` if this account may receive the task
+ */
+export function canAssignTaskTo(actor: Actor, target: UserTarget): boolean {
+  if (actor.role === "admin") return true;
+  if (actor.role === "manager") {
+    return actor.id === target.id || target.role === "user";
+  }
+  return false;
+}
+
+/**
  * Can this person see this task (card, or a future list filter).
  * Admin: any task. Owner: their own. Manager: also tasks with `ownerRole=user`.
  *

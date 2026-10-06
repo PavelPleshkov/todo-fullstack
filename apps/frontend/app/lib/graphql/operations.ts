@@ -138,6 +138,21 @@ export const UPDATE_TASK_MUTATION = graphql(`
   }
 `);
 
+export const ASSIGN_TASKS_MUTATION = graphql(`
+  mutation AssignTasks($input: AssignTasksInput!) {
+    assignTasks(input: $input) {
+      id
+      text
+      isDone
+      date
+      userId
+      ownerEmail
+      ownerDeleted
+      ownerRole
+    }
+  }
+`);
+
 export const MOVE_TO_BIN_MUTATION = graphql(`
   mutation MoveTaskToBin($id: Int!) {
     moveTaskToBin(id: $id) {
@@ -237,6 +252,7 @@ export type {
   CreateTaskMutationVariables,
   UpdateTaskMutation,
   UpdateTaskMutationVariables,
+  AssignTasksMutation,
   MoveTaskToBinMutation,
   MoveTaskToActiveMutation,
   PermanentlyDeleteTaskMutation,
