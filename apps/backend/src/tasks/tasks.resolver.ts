@@ -8,6 +8,7 @@ import {
   MoveCompletedResult,
   Task,
   UpdateTaskInput,
+  AssignTasksInput,
 } from '../graphql/task.types';
 import { TasksService } from './tasks.service';
 import type { JwtPayload } from '../auth/jwt-payload';
@@ -72,6 +73,15 @@ export class TasksResolver {
     @CurrentUser() user: JwtPayload,
   ): Promise<Task> {
     return this.tasksService.update(id, input, user);
+  }
+
+  @Mutation(() => [Task])
+  @UseGuards(JwtAuthGuard)
+  assignTasks(
+    @Args('input', { type: () => AssignTasksInput }) input: AssignTasksInput,
+    @CurrentUser() user: JwtPayload,
+  ): Promise<Task[]> {
+    return this.tasksService.assign(input.ids, input.ownerId, user);
   }
 
   @Mutation(() => Task)

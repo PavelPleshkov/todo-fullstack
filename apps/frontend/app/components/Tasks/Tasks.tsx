@@ -357,13 +357,7 @@ export default function Tasks() {
   }
 
   return (
-    <Grid
-      container
-      size={12}
-      direction={"column"}
-      spacing={2}
-      data-testid={"tasks"}
-    >
+    <Stack direction={"column"} spacing={2} data-testid={"tasks"}>
       <AddTask
         // tasks={tasks}
         // setTasks={setTasks}
@@ -377,6 +371,7 @@ export default function Tasks() {
         setIsBin={setIsBin}
         canPickScope={canPickScope}
         // taskScope={taskScope}
+        people={people}
         taskQueryVars={taskQueryVars}
         newTaskFor={newTaskForLabel(taskScope, people)}
         selectedIds={selectedIds}
@@ -386,12 +381,7 @@ export default function Tasks() {
         // refetchBin={refetchBin}
       />
 
-      <Grid
-        container
-        direction={"column"}
-        size={12}
-        sx={{ paddingBottom: "20px" }}
-      >
+      <Stack direction={"column"} spacing={2} sx={{ padding: "0px 20px 30px" }}>
         {canPickScope && (
           <Select
             native
@@ -403,7 +393,7 @@ export default function Tasks() {
             inputProps={{ "aria-label": "Whose tasks" }}
             sx={{
               color: "inherit",
-              margin: "0px 10px",
+              // margin: "0px 10px",
               width: { xs: "calc(100% - 20px)", sm: "fit-content" },
               // width: "fit-content",
               // "& .MuiNativeSelect-select": { color: "inherit" },
@@ -456,9 +446,9 @@ export default function Tasks() {
           direction={{ xs: "column", sm: "row" }}
           alignItems={{ xs: "stretch", sm: "center" }}
           spacing={2}
-          padding={"10px"}
+          // padding={"10px"}
         >
-          <h1 style={{ margin: "0px 10px", padding: "10px 0px" }}>
+          <h1>
             {!isBin
               ? deferredSearchValue.trim() === ""
                 ? selectedIds.length === 0
@@ -504,7 +494,7 @@ export default function Tasks() {
           spacing={2}
           size={{ xs: 12, md: 10, lg: 8 }}
           sx={{
-            px: "10px",
+            // px: "10px",
             width: "100%",
             maxWidth: "100%",
             boxSizing: "border-box",
@@ -527,18 +517,20 @@ export default function Tasks() {
             <Suspense fallback={<Loading />}>
               {showedTasks.length ? (
                 <ul>
-                  {showedTasks.map((task: TaskType) => {
-                    return (
-                      <Task
-                        task={task}
-                        key={task.id}
-                        isBin={isBin}
-                        taskQueryVars={taskQueryVars}
-                        isSelected={selectedIds.includes(task.id)}
-                        handleSelectTask={handleSelectTask}
-                      />
-                    );
-                  })}
+                  <Stack direction={"column"} spacing={2}>
+                    {showedTasks.map((task: TaskType) => {
+                      return (
+                        <Task
+                          task={task}
+                          key={task.id}
+                          isBin={isBin}
+                          taskQueryVars={taskQueryVars}
+                          isSelected={selectedIds.includes(task.id)}
+                          handleSelectTask={handleSelectTask}
+                        />
+                      );
+                    })}
+                  </Stack>
                 </ul>
               ) : sourceTasks.length === 0 ? (
                 <div style={{ padding: "10px 20px" }}>No tasks found</div>
@@ -552,7 +544,7 @@ export default function Tasks() {
             </Suspense>
           )}
         </ErrorBoundary>
-      </Grid>
-    </Grid>
+      </Stack>
+    </Stack>
   );
 }

@@ -48,6 +48,15 @@ export class UpdateTaskInput {
   isDone?: boolean;
 }
 
+@InputType()
+export class AssignTasksInput {
+  @Field(() => [Int])
+  ids!: number[];
+
+  @Field(() => Int)
+  ownerId!: number;
+}
+
 @ObjectType()
 export class MoveCompletedResult {
   @Field(() => [Task])

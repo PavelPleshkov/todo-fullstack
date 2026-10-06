@@ -25,9 +25,10 @@ export default function MainLayout({
           display: "flex",
           flexDirection: "column",
           width: "100vw",
-          minHeight: "100%",
+          minHeight: "100vh",
+          // height: "100%",
           maxWidth: "100vw",
-          overflowX: "hidden",
+          // overflowX: "hidden",
           backgroundColor: theme === "dark" ? "#363636" : "#f3f2f2cd",
         }}
       >

@@ -216,7 +216,7 @@ const Task = memo(function Task({
   };
 
   return (
-    <li style={{ padding: "5px 10px" }} data-testid="task">
+    <li data-testid="task">
       <Grid container spacing={2} size={12} direction={"row"}>
         <Grid size={{ xs: 9, lg: 8 }}>
           {!isEditable ? (

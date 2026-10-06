@@ -1,4 +1,4 @@
-import { Grid } from "@mui/material";
+import { Grid, Select, Stack } from "@mui/material";
 import { memo, useContext, useState } from "react";
 import Btn from "../Btn";
 import { ThemeContext } from "@/app/ThemeContext";
@@ -13,9 +13,11 @@ import {
   ACTIVE_TASKS_QUERY,
   BIN_TASKS_QUERY,
   UPDATE_TASK_MUTATION,
+  ASSIGN_TASKS_MUTATION,
 } from "@/app/lib/graphql/operations";
+import { canAssignTaskTo } from "@repo/permissions";
 // import { TaskScopeKey } from "./Tasks";
-// import { useAuth } from "@/app/AuthContext";
+import { useAuth } from "@/app/AuthContext";
 
 interface AddTaskProps {
   // tasks: TaskType[];
@@ -32,6 +34,12 @@ interface AddTaskProps {
   // refetchBin: () => Promise<unknown>;
   canPickScope: boolean;
   // taskScope: TaskScopeKey;
+  people: {
+    id: number;
+    email: string;
+    role: string;
+    deletedAt?: string | null;
+  }[];
   taskQueryVars: { ownerId: number | null; ownerRole: string | null };
   newTaskFor: string;
   selectedIds: number[];
@@ -54,6 +62,7 @@ export default memo(function AddTask({
   // refetchBin,
   canPickScope,
   // taskScope,
+  people,
   taskQueryVars,
   newTaskFor,
   selectedIds,
@@ -64,7 +73,9 @@ export default memo(function AddTask({
   const [isAddTaskFailed, setIsAddTaskFailed] = useState<boolean>(false);
   const theme: string = useContext(ThemeContext);
   const className: string = "add-task-" + theme;
-  // const { user } = useAuth();
+
+  const [assignOwnerId, setAssignOwnerId] = useState<string>("");
+  const { user } = useAuth();
   // const [createTaskMut] = useMutation(CREATE_TASK_MUTATION, {
   //   refetchQueries: [{ query: ACTIVE_TASKS_QUERY }],
   // });
@@ -313,58 +324,103 @@ export default memo(function AddTask({
     }
   };
 
+  const assignSelectedTasks = async () => {
+    if (assignOwnerId === "" || selectedIds.length === 0) return;
+
+    try {
+      await client.mutate({
+        mutation: ASSIGN_TASKS_MUTATION,
+        variables: {
+          input: { ids: selectedIds, ownerId: Number(assignOwnerId) },
+        },
+        refetchQueries: [
+          { query: ACTIVE_TASKS_QUERY, variables: taskQueryVars },
+          { query: BIN_TASKS_QUERY, variables: taskQueryVars },
+        ],
+      });
+      setSelectedIdsRaw([]);
+    } catch (error) {
+      console.log("Assign selected tasks error: ", error);
+    }
+  };
+
   return (
     <Grid
       container
       size={12}
-      direction={"row"}
+      // direction={"row"}
       spacing={2}
-      alignItems={"center"}
-      sx={{ padding: "10px 10px 10px" }}
+      alignItems="center"
+      // alignItems="stretch"
+      sx={{
+        padding: "10px 10px 10px",
+        boxShadow: "0 3px 10px -2px rgba(0, 0, 0)",
+      }}
       className={className}
       data-testid="add-task"
+      position={{ lg: "sticky" }}
+      top={"48px"}
+      zIndex={100}
     >
       <Grid
-        container
-        alignItems={"stretch"}
+        // container
         size={{ xs: 12, md: 6, lg: 4 }}
         spacing={1}
-        direction={"column"}
+        // direction={"column"}
+        // alignSelf="stretch"
+        // sx={{ height: "100%" }}
       >
-        {canPickScope && (
-          <div style={{ color: "#fff" }}>New task for {newTaskFor}</div>
-        )}
-        <textarea
-          aria-label="Add task input"
-          data-testid="add-task-input"
-          className={isAddTaskFailed ? "failed-adding" : ""}
-          rows={2}
-          style={{
-            backgroundColor: theme === "dark" ? "#363636" : "#ffffff",
-            border: "1px solid #1d1d1d",
-            borderRadius: "5px",
-            outlineColor: "#1d1d1d",
-            padding: "10px",
-            width: "100%",
-          }}
-          name="new task"
-          // type="text"
-          value={text}
-          placeholder={
-            isAddTaskFailed
-              ? "<--- Type new task here"
-              : canPickScope
-                ? "Type here"
-                : "New task"
-          }
-          onChange={(e) => setText(e.target.value)}
-        />
+        <Stack sx={{ height: "100%" }} spacing={1}>
+          {canPickScope && (
+            <div style={{ color: "#fff" }}>New task for {newTaskFor}</div>
+          )}
+          <textarea
+            aria-label="Add task input"
+            data-testid="add-task-input"
+            className={isAddTaskFailed ? "failed-adding" : ""}
+            rows={2}
+            style={{
+              backgroundColor: theme === "dark" ? "#363636" : "#ffffff",
+              border: "1px solid #1d1d1d",
+              borderRadius: "5px",
+              outlineColor: "#1d1d1d",
+              padding: "10px",
+              width: "100%",
+              // flex: 1,
+              minHeight: "100px",
+              boxSizing: "border-box",
+              // resize: "none",
+            }}
+            name="new task"
+            // type="text"
+            value={text}
+            placeholder={
+              isAddTaskFailed
+                ? "<--- Type new task here"
+                : canPickScope
+                  ? "Type here"
+                  : "New task"
+            }
+            onChange={(e) => setText(e.target.value)}
+          />
+        </Stack>
       </Grid>
-      <Grid container spacing={2} size={{ xs: 12, md: 6, lg: 8 }}>
-        <Grid container>
+      <Grid
+        container
+        spacing={2}
+        size={{ xs: 12, md: 6, lg: 8 }}
+        // alignSelf="center"
+      >
+        <Grid
+          container
+          direction="row"
+          spacing={2}
+          width="100%"
+          // justifyContent="space-between"
+        >
           <Btn
             // disabled={isBin || searchValue !== ""}
-            disabled={isBin || isSearchActive}
+            disabled={isBin || isSearchActive || text.trim() === ""}
             variant="contained"
             onClick={() => {
               if (isBin === false) {
@@ -374,41 +430,30 @@ export default memo(function AddTask({
           >
             Add
           </Btn>
-          <Btn
-            disabled={isBin}
-            variant="contained"
-            onClick={() => setSelectedIdsRaw(showedTasksIds)}
-          >
-            Select all
-          </Btn>
 
-          <Btn
-            disabled={isBin}
-            variant="contained"
-            onClick={() => setSelectedIdsRaw([])}
-          >
-            Unselect all
-          </Btn>
-          <Btn
-            // disabled={isBin || searchValue !== ""}
-            disabled={isBin || isSearchActive}
-            variant="contained"
-            onClick={() => deleteCompleted()}
-          >
-            Delete completed
-          </Btn>
-          <Btn
-            variant="contained"
-            onClick={() => {
-              sortTasks();
-            }}
-          >
-            {/* Sort {sortDirection} */}
-            {sortDirection === "asc" ? "↑" : "↓"} Sort{" "}
-            {sortDirection === "asc" ? "↑" : "↓"}
-          </Btn>
+          <Stack direction="row" spacing={1}>
+            <Btn
+              variant="contained"
+              onClick={() => {
+                sortTasks();
+              }}
+            >
+              {/* Sort {sortDirection} */}
+              {sortDirection === "asc" ? "↑" : "↓"} Sort{" "}
+              {sortDirection === "asc" ? "↑" : "↓"}
+            </Btn>
+            <Btn
+              // disabled={isBin || searchValue !== ""}
+              disabled={isBin || isSearchActive}
+              variant="contained"
+              onClick={() => deleteCompleted()}
+            >
+              Delete completed
+            </Btn>
+          </Stack>
         </Grid>
-        <Grid container>
+
+        <Grid container spacing={2} width="100%">
           {/* <Btn
             // disabled={isBin || searchValue !== ""}
             disabled={isBin || isSearchActive}
@@ -425,23 +470,109 @@ export default memo(function AddTask({
           >
             Unmark all
           </Btn> */}
-          <Btn
-            // disabled={isBin || searchValue !== ""}
-            disabled={isBin || selectedIds.length === 0}
-            variant="contained"
-            onClick={() => completeSelectedTasks(selectedIds)}
-          >
-            Complete ({selectedIds.length})
-          </Btn>
-          <Btn
-            // disabled={isBin || searchValue !== ""}
-            disabled={isBin || selectedIds.length === 0}
-            variant="contained"
-            onClick={() => reopenSelectedTasks(selectedIds)}
-          >
-            Reopen ({selectedIds.length})
-          </Btn>
+          <Grid container spacing={1}>
+            <Btn
+              disabled={isBin}
+              variant="contained"
+              onClick={() => setSelectedIdsRaw(showedTasksIds)}
+            >
+              Select all
+            </Btn>
+
+            <Btn
+              disabled={isBin}
+              variant="contained"
+              onClick={() => setSelectedIdsRaw([])}
+            >
+              Clear selection
+            </Btn>
+          </Grid>
+          <Grid container spacing={1}>
+            <Btn
+              // disabled={isBin || searchValue !== ""}
+              disabled={isBin || selectedIds.length === 0}
+              variant="contained"
+              onClick={() => completeSelectedTasks(selectedIds)}
+            >
+              Complete ({selectedIds.length})
+            </Btn>
+            <Btn
+              // disabled={isBin || searchValue !== ""}
+              disabled={isBin || selectedIds.length === 0}
+              variant="contained"
+              onClick={() => reopenSelectedTasks(selectedIds)}
+            >
+              Reopen ({selectedIds.length})
+            </Btn>
+            {canPickScope && (
+              <Grid container alignItems={"stretch"} spacing={1}>
+                <Select
+                  native
+                  value={assignOwnerId}
+                  onChange={(event) =>
+                    setAssignOwnerId(String(event.target.value))
+                  }
+                  inputProps={{
+                    "aria-label": "Assign to",
+                    style: { padding: "4px 10px" },
+                  }}
+                  sx={{
+                    // color: "inherit",
+                    color: "#fff",
+                    // margin: "0px 10px",
+                    width: { xs: "calc(100% - 20px)", sm: "fit-content" },
+                    // width: "fit-content",
+                    // "& .MuiNativeSelect-select": { color: "inherit" },
+                    "& .MuiSvgIcon-root": { color: "inherit" },
+                    "& option": {
+                      color: "#1d1d1d",
+                      backgroundColor: "#ffffff",
+                    },
+                    "& .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "#1d1d1d",
+                    },
+                    "&:hover .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "#1d1d1d",
+                    },
+                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                      borderColor:
+                        theme === "dark"
+                          ? "var(--foreground)"
+                          : "var(--background)",
+                      borderWidth: "2px",
+                    },
+                    "& .MuiNativeSelect-select:focus": {
+                      backgroundColor: "transparent",
+                    },
+                  }}
+                >
+                  <option value="">Assign to…</option>
+                  {people
+                    .filter(
+                      (person) => user != null && canAssignTaskTo(user, person),
+                    )
+                    .map((person) => (
+                      <option key={person.id} value={person.id}>
+                        {person.deletedAt
+                          ? `${person.email} (deleted)`
+                          : person.email}
+                      </option>
+                    ))}
+                </Select>
+                <Btn
+                  variant="contained"
+                  disabled={
+                    isBin || selectedIds.length === 0 || assignOwnerId === ""
+                  }
+                  onClick={() => assignSelectedTasks()}
+                >
+                  Assign ({selectedIds.length})
+                </Btn>
+              </Grid>
+            )}
+          </Grid>
         </Grid>
+
         <Grid>
           <Btn
             variant="contained"
