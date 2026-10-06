@@ -53,7 +53,7 @@ apps/frontend/app/
 ├── (main)/
 │   ├── layout.tsx             # Client shell: theme, Header + TabNav via next/dynamic { ssr: false }
 │   ├── layout.test.tsx
-│   ├── page.tsx               # GET / → redirect("/profile")
+│   ├── page.tsx               # GET / → redirect("/login")
 │   ├── login/page.tsx
 │   ├── profile/page.tsx
 │   ├── tasks/page.tsx
@@ -83,8 +83,8 @@ apps/frontend/app/
 
 | URL         | File                         | Renders     | Notes                                      |
 | ----------- | ---------------------------- | ----------- | ------------------------------------------ |
-| `/`         | `app/(main)/page.tsx`        | redirect    | `redirect("/profile")`                     |
-| `/login`    | `app/(main)/login/page.tsx`  | `LoginForm` | public login / register                    |
+| `/`         | `app/(main)/page.tsx`        | redirect    | `redirect("/login")`                       |
+| `/login`    | `app/(main)/login/page.tsx`  | `LoginForm` | public login / register; success → `/tasks` |
 | `/profile`  | `app/(main)/profile/page.tsx`| `Profile`   | session user fields                        |
 | `/tasks`    | `app/(main)/tasks/page.tsx`  | `Tasks`     | JWT required for queries (`skip` if guest) |
 | `/users`    | `app/(main)/users/page.tsx`  | `Users`     | UI gated by `canAccessUsers`               |
@@ -117,14 +117,19 @@ RootLayout (app/layout.tsx, Server)
 
 - State `taskScope` in `Tasks.tsx` maps to GraphQL `ownerId` / `ownerRole` (`toTaskQueryVars`). Staff load `USERS_QUERY` for select options.
 - `activeTasks` / `binTasks` use `fetchPolicy: "cache-and-network"` so changing the select refetches (Apollo otherwise keeps a stale list per variable set).
-- Card mutations refetch those queries with the **same** variables. Scope args belong on the list refetch, not on `updateTask` / `moveTaskToBin` / etc.
+- Card mutations refetch those queries with the **same** variables. Scope args belong on the list refetch, not on `updateTask` / `moveTaskToBin` / `assignTasks` / etc.
+- **Selection** is client-only (`selectedIdsRaw` in `Tasks.tsx`). The list and toolbar use `selectedIds` = raw ∩ current `sourceTasks` (active or bin). Search does not drop hidden selected ids. Changing scope clears raw selection; entering the bin does not.
+- Checkbox / card click toggles selection. **Complete** / **Reopen** on the card and **Complete (n)** / **Reopen (n)** in `AddTask` call `updateTask` (`isDone`).
+- `markAllActiveTasks` / `unmarkAllActiveTasks` still work on the API (scope-wide `isDone`). The current UI does not call them: Mark all / Unmark all in `AddTask` are commented out.
+- **Assign** (staff only, `canPickScope`): a separate “Assign to…” select in `AddTask` (not the scope select) plus **Assign (n)**. Options are `people` filtered with `canAssignTaskTo`. Mutation `assignTasks({ ids, ownerId })`; then refetch lists with current `taskQueryVars` and `setSelectedIdsRaw([])`.
+- **Delete completed** still moves all `isDone` tasks in the current scope to the bin (`moveCompletedToBin`), not the selection.
 
 ### Auth on the client
 
 - Token and user JSON: `app/lib/auth-storage.ts` (`accessToken`, `authUser`).
 - `AuthContext` exposes `user`, `token`, `isAuthenticated`, `setSession`, `logout`. First client paint stays guest until the client snapshot is allowed (hydration-safe).
 - `ApolloWrapper` `SetContextLink` sets `Authorization: Bearer <token>`. `ErrorLink` skips Login/Register; on `"This account has been deleted"` it clears storage and sends the browser to `/login`.
-- UI hide/show uses `@repo/permissions` (tabs, Users buttons, permanent delete). The **server** still enforces every mutation.
+- UI hide/show uses `@repo/permissions` (tabs, Users buttons, permanent delete, Assign target list). The **server** still enforces every mutation.
 
 ### Frontend tests
 
@@ -148,18 +153,22 @@ RootLayout (app/layout.tsx, Server)
 - Public: `login`, `register` (new accounts get `role=user`). bcrypt passwords.
 - JWT payload: `sub`, `email`, `role`. Guard rejects deleted users (`users.deleted_at`) immediately.
 - Coarse route gate: `@UseGuards(JwtAuthGuard, RolesGuard)` + `@Roles('admin', 'manager')` on Users queries/mutations and `permanentlyDeleteTask`.
-- Object rules: `@repo/permissions` in `auth.service.ts` (`canSeeUser`, `canSoftDeleteUser`, `canRestoreUser`) and `tasks.service.ts` (`canModifyTask`, `canHardDeleteTask`, plus `resolveScope` for lists). Failed task access is returned as **404** (do not leak that the id exists).
+- Object rules: `@repo/permissions` in `auth.service.ts` (`canSeeUser`, `canSoftDeleteUser`, `canRestoreUser`) and `tasks.service.ts` (`canModifyTask`, `canHardDeleteTask`, `canAssignTaskTo`, plus `resolveScope` for lists and `createTask` owner). Failed task access is returned as **404** (do not leak that the id exists).
 - Soft-delete user: set `deleted_at`. Tasks stay; API exposes `ownerDeleted` so the UI can show `email (deleted)`.
 
 ### Tasks API
 
-Queries/mutations in `tasks.resolver.ts`: `activeTasks`, `binTasks`, `createTask`, `updateTask`, `moveTaskToBin`, `moveTaskToActive`, `permanentlyDeleteTask`, `moveCompletedToBin`, `markAllActiveTasks`, `unmarkAllActiveTasks`.
+Queries/mutations in `tasks.resolver.ts`: `activeTasks`, `binTasks`, `createTask`, `updateTask`, `assignTasks`, `moveTaskToBin`, `moveTaskToActive`, `permanentlyDeleteTask`, `moveCompletedToBin`, `markAllActiveTasks`, `unmarkAllActiveTasks`.
 
-List and bulk operations take optional **`ownerId`** and **`ownerRole`**. `TasksService.resolveScope` turns them into one of: `self`, `visible`, `role` (`user` | `manager`), or `user` (one id). Regular `user` is always `self`. Manager `visible` is own tasks plus `role=user`; manager may not request another manager/admin or `ownerRole=manager`. Admin `visible` is the whole table.
+List and scope-wide operations take optional **`ownerId`** and **`ownerRole`**. `TasksService.resolveScope` turns them into one of: `self`, `visible`, `role` (`user` | `manager`), or `user` (one id). Regular `user` is always `self`. Manager `visible` is own tasks plus `role=user`; manager may not request another manager/admin or `ownerRole=manager`. Admin `visible` is the whole table.
 
 `createTask` input may include `ownerId`. If omitted or self, the task is created for the viewer; if another id, the same scope rules apply (manager → only `role=user`).
 
-On `/tasks`, admin and manager get a **scope select** (My / All / All managers or All users / each person). The same args go to list queries, Mark all / Unmark / Delete completed, and refetch after card mutations. `New task for` shows who Add will create for (`you` vs that person's email). Regular users have no select.
+`assignTasks(input: AssignTasksInput!)` is **not** `updateTask` and **not** scope: `{ ids: [Int!]!, ownerId: Int! }`. JWT only on the resolver (`user` role reaches the service and gets 404). Service: empty `ids` → 400; load target user; `canAssignTaskTo` else 404; `checkCanModifyTask` on each id; `UPDATE user_id` where `deleted = false`; row count must match. Returns `[Task]`. Regular user: cannot assign. Admin: any account. Manager: self or `role=user`.
+
+On `/tasks`, admin and manager get a **scope select** (My / All / All managers or All users / each person). The same args go to list queries, Delete completed, and refetch after mutations. `New task for` shows who Add will create for (`you` vs that person's email). Regular users have no select. Assign uses its own person select (`canAssignTaskTo`), not the scope select.
+
+`markAllActiveTasks` / `unmarkAllActiveTasks` accept the same scope args and still work on the server. The current UI does not use them (toolbar uses Complete/Reopen on the selection instead).
 
 `permanentlyDeleteTask`: admin any bin task; manager only if the owner is `role=user`. Task GraphQL type includes `ownerRole` (from `JOIN users`).
 
@@ -178,7 +187,8 @@ On `/tasks`, admin and manager get a **scope select** (My / All / All managers o
 | `canSoftDeleteUser`        | Del / `deleteUser`                           | `auth.service`, `Users.tsx`                            |
 | `canRestoreUser`           | Restore / `restoreUser`                      | `auth.service`, `Users.tsx` (Restore also requires `canSoftDeleteUser` in the UI) |
 | `canSeeTask`               | See this task                                | Used by `canModifyTask`; list SQL follows the same idea via `resolveScope` |
-| `canModifyTask`            | Edit / bin / restore / mark                  | `tasks.service` `checkCanModifyTask`                   |
+| `canModifyTask`            | Edit / bin / restore / complete              | `tasks.service` `checkCanModifyTask`                   |
+| `canAssignTaskTo`          | Who may receive a task (`assignTasks`)     | `AddTask` Assign select; `tasks.service` `assign`      |
 | `canHardDeleteTask`        | Permanent delete from bin                    | `Task.tsx` and `permanentlyDeleteFromBin`              |
 
 Helpers are pure (`Actor`, `UserTarget`, `TaskTarget`). Do not import Nest, React, or `pg` here. DB `users.role` CHECK is `user` \| `admin` \| `manager`.
@@ -198,7 +208,7 @@ If Nest `nodenext` cannot resolve the package, add a `paths` alias in `apps/back
 | Service       | URL / port                      | Source                                                                                          |
 | ------------- | ------------------------------- | ----------------------------------------------------------------------------------------------- |
 | Frontend      | `http://localhost:3000`         | Root README; `apps/frontend` script `next dev -p 3000`                                          |
-| Frontend URLs | `/`, `/login`, `/profile`, `/tasks`, `/users` | `app/(main)/*/page.tsx`; `/` → `/profile`                                              |
+| Frontend URLs | `/`, `/login`, `/profile`, `/tasks`, `/users` | `app/(main)/*/page.tsx`; `/` → `/login`; login success → `/tasks`                      |
 | Backend HTTP  | `http://localhost:3001`         | `apps/backend/src/main.ts` — `process.env.PORT ?? 3001`                                         |
 | GraphQL HTTP  | `http://localhost:3001/graphql` | Root README; `ApolloWrapper.tsx` default                                                        |
 | Docs app      | `http://localhost:3002`         | `yarn dev:docs` from `apps/docs`                                                                |
