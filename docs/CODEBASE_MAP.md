@@ -12,7 +12,7 @@ The UI uses the **Next.js App Router**. A shared client shell (header, theme, ta
 
 | Path            | Workspace name | Role                        | Tech notes                                                                                                          |
 | --------------- | -------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| `apps/frontend` | `frontend`     | Main UI                     | Next.js App Router, MUI, Apollo Client 4, GraphQL Codegen, JWT in `localStorage`, imports `@repo/permissions`       |
+| `apps/frontend` | `frontend`     | Main UI                     | Next.js App Router, MUI, AG Grid Community 36 (`/users`), Apollo Client 4, GraphQL Codegen, JWT in `localStorage`, imports `@repo/permissions` |
 | `apps/backend`  | `backend`      | API                         | NestJS, `@nestjs/graphql` + Apollo, `pg`, JWT (`@nestjs/jwt`), imports `@repo/permissions`                          |
 | `apps/docs`     | `docs`         | Optional local docs site    | Next.js on port **3002**; run separately with `yarn dev:docs` in `apps/docs` (not part of root `yarn dev`)          |
 
@@ -45,7 +45,7 @@ Route group `(main)` organizes the shell; the folder name does **not** appear in
 apps/frontend/app/
 ├── layout.tsx                 # Root layout (Server): fonts, metadata, ApolloWrapper
 ├── globals.css
-├── styles/                    # SCSS (buttons, etc.)
+├── styles/                    # SCSS (buttons, tasks, users/AG Grid paging, etc.)
 ├── ThemeContext.tsx
 ├── AuthContext.tsx            # session from auth-storage (useSyncExternalStore)
 ├── ApolloWrapper.tsx          # Apollo + Bearer token + AuthProvider + deleted-account ErrorLink
@@ -57,7 +57,7 @@ apps/frontend/app/
 │   ├── login/page.tsx
 │   ├── profile/page.tsx
 │   ├── tasks/page.tsx
-│   ├── users/page.tsx         # Users table (admin and manager)
+│   ├── users/page.tsx         # Users AG Grid (admin and manager)
 │   ├── form/page.tsx          # demo Formik page (not in default tabs)
 │   └── stopwatch/page.tsx     # demo (not in default tabs)
 │
@@ -67,7 +67,7 @@ apps/frontend/app/
 │   ├── Btn.tsx
 │   ├── Auth/LoginForm.tsx     # login + register
 │   ├── Profile/Profile.tsx
-│   ├── Users/Users.tsx
+│   ├── Users/Users.tsx        # AG Grid + Del/Restore
 │   ├── Tasks/                 # Tasks (scope select), Task, AddTask, Search
 │   ├── Form/
 │   └── Stopwatch/
@@ -87,7 +87,7 @@ apps/frontend/app/
 | `/login`    | `app/(main)/login/page.tsx`  | `LoginForm` | public login / register; success → `/tasks` |
 | `/profile`  | `app/(main)/profile/page.tsx`| `Profile`   | session user fields                        |
 | `/tasks`    | `app/(main)/tasks/page.tsx`  | `Tasks`     | JWT required for queries (`skip` if guest) |
-| `/users`    | `app/(main)/users/page.tsx`  | `Users`     | UI gated by `canAccessUsers`               |
+| `/users`    | `app/(main)/users/page.tsx`  | `Users`     | AG Grid; UI gated by `canAccessUsers`      |
 | `/form`     | `app/(main)/form/page.tsx`   | `Form`      | demo; not in current tab sets              |
 | `/stopwatch`| `app/(main)/stopwatch/page.tsx` | `Stopwatch` | demo; not in current tab sets           |
 
@@ -124,6 +124,14 @@ RootLayout (app/layout.tsx, Server)
 - **Assign** (staff only, `canPickScope`): a separate “Assign to…” select in `AddTask` (not the scope select) plus **Assign (n)**. Options are `people` filtered with `canAssignTaskTo`. Mutation `assignTasks({ ids, ownerId })`; then refetch lists with current `taskQueryVars` and `setSelectedIdsRaw([])`.
 - **Delete completed** still moves all `isDone` tasks in the current scope to the bin (`moveCompletedToBin`), not the selection.
 
+### Users UI
+
+- `Users.tsx` is an **AG Grid Community** table (`ag-grid-react` **36.2** + `ag-grid-community` **36.2`). GraphQL and permissions are unchanged: `USERS_QUERY`, `deleteUser`, `restoreUser`; `canAccessUsers` / `canSoftDeleteUser` / `canRestoreUser` (Restore in the UI also requires `canSoftDeleteUser`).
+- Wrap: `AgGridProvider` + `AllCommunityModule`. Columns: id, email, role, createdAt, deletedAt (`valueFormatter` → locale date), Actions (`cellRenderer` with Del / Restore — no `field`).
+- Theme: `themeQuartz.withParams` from `ThemeContext` (`light` / `dark`). Pagination bar colour is **not** a theme param; override `.ag-paging-panel` in `app/styles/_users.scss` under `.content-dark` / `.content-light` (`main.scss` `@use "./users"`).
+- Pagination and column filters are on. `rowSelection: multiRow` is in the file but **commented out** in the current UI (not wired to bulk Del/Restore). A commented HTML `<table>` may still sit in the file as leftover.
+- Grid height is fixed (`400px`), `domLayout` default (`normal`) — row virtualisation can run when a page has more rows than fit. With a small user list and page size 10 it barely shows. `rowBuffer` default is 10.
+
 ### Auth on the client
 
 - Token and user JSON: `app/lib/auth-storage.ts` (`accessToken`, `authUser`).
@@ -135,7 +143,7 @@ RootLayout (app/layout.tsx, Server)
 
 - Jest mocks `next/navigation` in `apps/frontend/jest.setup.ts`.
 - Shell: `app/(main)/layout.test.tsx`. Tabs: `app/components/TabNav.test.tsx` (may still describe older tab sets — update when touching TabNav tests).
-- Feature tests next to components (`Tasks.test.tsx`, `Header.test.tsx`, etc.).
+- Feature tests next to components (`Tasks.test.tsx`, `Header.test.tsx`, etc.). No dedicated `Users` test file.
 
 ## Backend (`apps/backend`)
 

@@ -167,9 +167,11 @@ PGDATABASE=todo_db`,
         <li>
           Shared rules: <code>packages/permissions</code> imported as{" "}
           <code>@repo/permissions</code> from both apps (tabs, Users actions,
-          task edit / hard-delete). Admin and manager filter tasks with a
-          select (My / All / by role or person); the same scope is used for
-          bulk actions and optional <code>createTask.ownerId</code>.
+          task edit / hard-delete). <code>/users</code> is an AG Grid
+          Community table (admin / manager); Del / Restore are the same
+          GraphQL mutations. Admin and manager filter tasks with a select (My
+          / All / by role or person); the same scope is used for bulk actions
+          and optional <code>createTask.ownerId</code>.
         </li>
         <li>
           After GraphQL schema changes: from <code>apps/frontend</code> run{" "}

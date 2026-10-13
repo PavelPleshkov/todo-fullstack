@@ -7,7 +7,7 @@ export default function Footer() {
     <div className={`footer footer-${theme}`} data-testid="footer">
       React, TS, Next.js, Nest.js, PostgreSQL, Formik with Yup, RTL, Jest,
       GraphQL, AI, App Router, optimization, JWT Authentication, RBAC
-      (Role-Based Access Control) with permissions
+      (Role-Based Access Control) with permissions, AG Grid
     </div>
   );
 }
