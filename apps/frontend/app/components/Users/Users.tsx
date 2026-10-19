@@ -23,6 +23,7 @@ import {
 import { AllCommunityModule, themeQuartz } from "ag-grid-community";
 import type {
   ColDef,
+  GetRowIdParams,
   // RowSelectionOptions,
   ICellRendererParams,
 } from "ag-grid-community";
@@ -54,13 +55,15 @@ export default function Users() {
   const deleteUser = useCallback(
     async (id: number, email: string) => {
       setActionError(null);
+
       if (
         !confirm(
-          `Delete user ${email}?\n\nThis user's email on tasks will be marked as (deleted)`,
+          `Delete user ${email}?\n\nThis user's email on tasks will be marked as (deleted)\nUser can be restored later`,
         )
       ) {
         return;
       }
+
       try {
         await client.mutate({
           mutation: DELETE_USER_MUTATION,
@@ -84,6 +87,15 @@ export default function Users() {
   const restoreUser = useCallback(
     async (id: number, email: string) => {
       setActionError(null);
+
+      if (
+        !confirm(
+          `Restore user ${email}?\n\nThis user will be restored and able to login again`,
+        )
+      ) {
+        return;
+      }
+
       try {
         await client.mutate({
           mutation: RESTORE_USER_MUTATION,
@@ -170,6 +182,12 @@ export default function Users() {
 
   const defaultColDef = useMemo(() => ({ editable: false }), []);
 
+  // getRowId={(params) => params.data?.id.toString()}
+  const getRowId = useCallback(
+    (params: GetRowIdParams<(typeof users)[number]>) => String(params.data.id),
+    [],
+  );
+
   // const rowSelection: RowSelectionOptions = { mode: "multiRow" };
 
   const gridTheme = useMemo(
@@ -240,6 +258,8 @@ export default function Users() {
               <AgGridReact
                 theme={gridTheme}
                 rowData={users}
+                // getRowId={(params) => params.data?.id.toString()}
+                getRowId={getRowId}
                 defaultColDef={defaultColDef}
                 columnDefs={columnDefs}
                 pagination={true}
